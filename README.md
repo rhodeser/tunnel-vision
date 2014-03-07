@@ -1,8 +1,8 @@
 tunnel-vision
 =============
-Tunnel Vision is a game designed on the Xilinx Nexys 3 FPGA board.  It uses the Picoblaze softcore to control the gameplay. The display controller lets the user view the game via a monitor through a  VGA cable. 
+Tunnel Vision is a game designed on the Xilinx Nexys 3 FPGA board.  It uses the Picoblaze softcore to control the gameplay. The display controller lets the user view the game via a monitor through a  VGA cable.
 
-Gameplay:  
+Gameplay:    <br /> 
 The player tries to avoid hitting the walls as he travels down the tunnel by moving his vehicle left and right. The space in between the walls steadily decreases until the player hits a wall.  The score is displayed during gameplay.
 
 Controls:   <br />
@@ -12,11 +12,11 @@ Features:   <br />
 The player will be able to select different vehicles, backgrounds, and speed levels.  The courses are generated randomly through a combination of a pseudo-random generator (LFSR) and user input (via pushbuttons and switches).
 
 Future Work:   <br />
-In the future, we hope to add features such as:
--Nintendo controller integration
--Soundtrack
--Multiplayer options
--Powerups/Bonuses
+In the future, we hope to add features such as:   <br />
+-Nintendo controller integration   <br /> 
+-Soundtrack   <br />
+-Multiplayer options   <br />
+-Powerups/Bonuses   <br />
 
-Site Navigation: 
+Site Navigation:    <br />
 Our code and documentation can all be found here. Our distribution of tasks, workflow, and progress can be viewed through the milestones and issues.
