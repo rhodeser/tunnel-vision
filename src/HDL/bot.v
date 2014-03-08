@@ -103,6 +103,8 @@ kcpsm6 #(
  // instantiate the BOTSIM program ROM
  // JTAG update is disabled - This is the "production" BOTSIM
  // so save the functionality for the Application program
+ 
+ /*
  bot_pgm BOTSIMPGM ( 
 	.enable 		(bram_enable),
 	.address 		(address),
@@ -158,6 +160,6 @@ map 	MAP (
 	.clk(clk),							// system clock
 	.reset(reset)						// system reset
 );
-				
+*/				
 endmodule
 						

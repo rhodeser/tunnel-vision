@@ -285,7 +285,7 @@ wire	[9:0]			vid_col_shifted;
 
 	// INSTANTUATE THE PROJECT1DEMO MODULE
 	
-	proj1demo  proj1demo(
+	game_control_logic  game_ctrl(
 
 		.rdl 				(rdl),
 		.enable 			(bram_enable),
