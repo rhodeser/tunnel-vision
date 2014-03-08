@@ -1,0 +1,12 @@
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}
+\contentsline {section}{\numberline {2}Software Implementation}{3}{section.2}
+\contentsline {subsection}{\numberline {2.1}Forward}{4}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}Backward}{5}{subsection.2.2}
+\contentsline {subsection}{\numberline {2.3}Turning}{6}{subsection.2.3}
+\contentsline {section}{\numberline {3}Video Controller Implementation}{6}{section.3}
+\contentsline {subsection}{\numberline {3.1}Colorizer}{6}{subsection.3.1}
+\contentsline {subsection}{\numberline {3.2}Icon}{7}{subsection.3.2}
+\contentsline {section}{\numberline {4}Conclusion}{7}{section.4}
+\contentsline {subsection}{\numberline {4.1}Challenges}{9}{subsection.4.1}
+\contentsline {subsection}{\numberline {4.2}Time Invested}{10}{subsection.4.2}
+\contentsline {subsection}{\numberline {4.3}Future Work}{10}{subsection.4.3}
