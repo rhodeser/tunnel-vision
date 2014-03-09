@@ -95,14 +95,8 @@ module Nexys3fpga (
 	
 //////////NEXYS3_BOT_IF/////////
 
-wire 	[7:0]		motctl;
-wire 	[7:0]		botinfo;
-wire 	[7:0] 	locX;
-wire 	[7:0] 	locY;
-wire 	[7:0]		sensors;
-wire 	[7:0]		lmdist;
-wire 	[7:0]		rmdist;
-wire 				upd_sysregs;
+wire 	[7:0]		game_info;
+//wire 				upd_sysregs;
 
 
 wire 	[3:0]		port_id;
@@ -115,7 +109,7 @@ wire				write_strobe;
 wire				read_strobe;
 wire				interrupt;
 wire				interrupt_ack;
-wire 	[7:0]		led;
+//wire 	[7:0]		led;
 
 
 ////////////BOT.V///////////////
@@ -147,8 +141,7 @@ wire					video_on;
 /////// PART II COLORIZER.V//////////
 
 
-wire	[1:0] 			icon;
-
+wire	[1:0] 			icon,wall;
 
 ////// VIDEO CONTROLLER/////
 
@@ -215,16 +208,8 @@ wire	[9:0]			vid_col_shifted;
 	
 	game_interface game_int(
 		.clk(sysclk),
-		.motctl(motctl),
-		.locX(locX),
-		
-	//	.locY(locY),
-	//	.botinfo(botinfo),
-	//	.sensors(sensors),
-		
-	//	.lmdist(lmdist),
-	//	.rmdist(rmdist),
-		.upd_sysregs(upd_sysregs),
+		.game_info(game_info),
+//		.upd_sysregs(upd_sysregs),
 		.db_btns(db_btns[4:1]),
 		.db_sw(db_sw),
 		.dig3(dig3),
@@ -243,25 +228,6 @@ wire	[9:0]			vid_col_shifted;
 		.led(led)
 	);	
 	
-	
-	// INSTANTUATE THE BOT MODULE
-	bot bot(
-	
-		.clk(sysclk),
-		.reset(sysreset),
-		.MotCtl_in(motctl),
-		.LocX_reg(locX),
-		.LocY_reg(locY),
-		.BotInfo_reg(botinfo),
-		.Sensors_reg(sensors),
-		.LMDist_reg(lmdist),
-		.RMDist_reg(rmdist),
-		.upd_sysregs(upd_sysregs),
-		.vid_row(vid_row_shifted),
-		.vid_col(vid_col_shifted),
-		.vid_pixel_out(vid_pixel_out)
-	
-	);
 	
 	// INSTANTUATE KCPSM6 MODULE (CONTROLLER)
 	
@@ -349,7 +315,7 @@ DCM_SP #(
 
 // INSTANTIATE DTG.V MODULE
 
-/*
+
 dtg dtg(
 .clock(clk25),
 .rst(sysreset),
@@ -359,32 +325,32 @@ dtg dtg(
 .pixel_row(vid_row),
 .pixel_column(vid_col)
 );
-*/
+
 
 
 // INSTANTIATE COLORIZE.V MODULE
-/*
+
 colorizer colorizer(
-.clk(clk25),
+.clock(clk25),
+.rst(sysreset),
 .video_on(video_on),
-.world_pixel(vid_pixel_out),
-.icon_c(icon),
-.vgaRed(vgaRed),
-.vgaGreen(vgaGreen),
-.vgaBlue(vgaBlue)
+.wall(wall),
+.icon(icon),
+.red(vgaRed),
+.green(vgaGreen),
+.blue(vgaBlue)
 
 );
 
 
-Icon_m icon_m(
-
-.clk(clk25),
-.locX(locX),
-.locY(locY),
-.botinfo(botinfo),
-.pixel_row(vid_row),
-.pixel_column(vid_col),
-.icon_i(icon)
+video_game_controller game_control(
+.clock(clk25),
+.rst(sysreset),
+.game_info_reg(game_info),
+.Pixel_row(vid_row),
+.Pixel_column(vid_col),
+.icon(icon),
+.wall(wall)
 );
-	*/		
+		
 endmodule

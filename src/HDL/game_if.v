@@ -21,17 +21,8 @@
 module game_interface(
 
 	input					clk,
-	// BOT.V CONNECTIONS
-	output reg	[7:0]		motctl,
-	
-	input		[7:0]		locX,
-	input		[7:0]		locY,
-	input		[7:0]		botinfo,
-	input		[7:0]		sensors,
-	input		[7:0]		lmdist,
-	input		[7:0]		rmdist,
-	
-	input					upd_sysregs,
+	output reg	[7:0]		game_info,
+	//input					upd_sysregs,
 	
 	// SEVEN SEGMENT.V CONNECTIONS
 	
@@ -41,8 +32,6 @@ module game_interface(
 	output reg	[4:0]		dig0,
 	
 	output reg	[3:0]		dp,
-	
-//	input					msec_tick,
 	
 	// DEBOUNCE.V CONNECTIONS
 	
@@ -64,7 +53,7 @@ module game_interface(
 	input					write_strobe,
 	input					read_strobe,
 	
-	output reg			interrupt,
+	output reg				interrupt,
 	
 	input					interrupt_ack
 	
@@ -104,7 +93,7 @@ begin
 						 end			
 
 		8'h09			 :begin
-								motctl <= out_port; 						
+								game_info <= out_port; 						
 						 end		
 
 		default		:begin
@@ -127,36 +116,8 @@ begin
 
 		8'h01			:begin
 								in_port <= db_sw; 						
-						 end								 
-		
-		8'h0A			:begin
-								in_port <= locX; 						
-						 end	
-
-		8'h0B			:begin
-								in_port <= locY; 						
-						 end	
-
-		8'h0C			:begin
-								in_port <= botinfo; 						
-						 end			
-
-		8'h0D			:begin
-								in_port <= sensors; 						
-						 end		
-
-		8'h0E			:begin
-								in_port <= lmdist; 						
-						 end		
-
-		8'h0F			:begin
-								in_port <= rmdist; 						
-						 end	
-
-		default		:begin
-								in_port <= sensors;
-						 end
-								 
+						 end					 
+									 
 	 endcase
 end
 	
@@ -164,7 +125,8 @@ end
 	// INTERRUPT & INTERRUPT ACK
 always @ (posedge clk)
 	begin
-			
+		interrupt <= 1'b0;
+/*	
 		if(interrupt_ack == 1'b1)
 		begin
 			interrupt <= 1'b0;
@@ -176,6 +138,7 @@ always @ (posedge clk)
 				interrupt <= 1'b1;
 			end
 		end
+*/		
 	end
 
 endmodule
