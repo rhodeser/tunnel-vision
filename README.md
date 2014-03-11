@@ -19,6 +19,6 @@ In the future, we hope to add features such as:   <br />
 - Powerups/Bonuses   <br />
 
 ### Site Navigation    <br />
-Our code and documentation can all be found here. Our distribution of tasks, workflow, and progress can be viewed through the milestones and issues. The progress report can also be found [Here](http://goo.gl/TjoNLc)
+Our code and documentation can all be found here. Our distribution of tasks, workflow, and progress can be viewed through the milestones and issues. The progress report can also be found [here](http://goo.gl/TjoNLc)
 
 
