@@ -115,6 +115,26 @@ CONSTANT	MSK_SW2,		04		; Slide switch 2 is bit 2
 CONSTANT	MSK_SW1,		02		; Slide switch 1 is bit 1
 CONSTANT	MSK_SW0,		01		; Slide switch 0 is bit 0
 
+; -----------------------TUNNEL VISION-------------------------
+; =============================================================
+; === Bit mappings masks used for game_info register output ===
+; =============================================================
+
+CONSTANT	MSK_SPRITE,		03
+CONSTANT	MSK_WALL,		0C	
+CONSTANT	MSK_WALL_WIDTH,	10
+CONSTANT	MSK_GAME_STAT,	20
+CONSTANT	MSK_LEVEL,		C0
+CONSTANT	MSK_RIGHT,		00
+CONSTANT	MSK_CENTER,		01
+CONSTANT	MSK_LEFT,		10
+
+CONSTANT	STATE,			28
+CONSTANT	SP_SCORE,		29
+CONSTANT	SP_SPRITE_LOC,	30
+
+CONSTANT	PAUSED_STATE,	00
+CONSTANT	ACTIVE_STATE,	01
 
 ; bit mask for LEDs
 CONSTANT	MSK_LEDS,		FF		; There are 8 LEDs on the Nexys 3
@@ -589,7 +609,121 @@ next_loc:		LOAD	s0,		LocX				; Dig[3:2] gets X-coordinate
 next_step:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
 				CALL	btn2mot						; and calculate new MotCtl - returned in s1
 				OUTPUT	s1,		PA_MOTCTL_IN		; tell Rojobot what to do
-				RETURN																
+				RETURN	
+
+
+; for milestone 1, just need vehicle movement L,R and straight.  update local variables and
+; output change in game_info register.
+				
+				;CHECK RESET LOGIC AT ALL?
+				
+				CALL	chk_up_btn					;s0 holds the DEB_rdbtns
+				CALL	chk_down_btn				;see if we've paused or not
+				FETCH	s0,		STATE	
+				COMPARE	S0,		ACTIVE_STATE	;Pick which state based on values
+				JUMP	NZ,		paused
+				CALL	active
+				RETURN
+				
+				;create state macros
+active:			;main state, where everything is updated
+				;set state to resume and set bits to game_info (just for game_status)											;
+
+				;if not paused, update score.  Max 999, so go slow
+update_score:	;Look at proj1 verilog?  Need digits logic.  have another counter so score is lower?
+				FETCH	s2,		SP_SCORE				;increment score and display on 7seg
+				ADD		s2,		01							;increment location by 1
+				STORE	s2,		SP_SCORE
+				;OUTPUT		;output to 7 seg
+				RETURN
+				
+				
+				;have a counter for however many cycles before changing.  Then check the bits 
+update_wall_loc:	
+				;FETCH	s2,		SP_WALL_X					
+				;COMPARE	RAND,	RIGHT					;see if wall moving right ####
+				;JUMP	NZ, wall_left_case
+				;ADD	s2,		01							;if yes, increment x coordinate
+				;STORE	s2,		SP_WALL_X
+				;RETURN
+				
+wall_left_case:	
+				;COMPARE	RAND,	LEFT					;see if wall moving right ####
+				;RETURN		NZ					;IS THIS LEGAL? if not right, no update needed
+				;SUB	s2,		01				;
+				;STORE	s2,	SP_WALL_X
+				;RETURN
+
+;; add SP_WALL_X, SP_SCORE, RAND, 
+
+chk_btn_left:				;NOW CHECK LEFT AND RIGHT button (if not paused)
+				LOAD	s4,		s0				;copy value
+				AND		s4,		MSK_BTN_LEFT
+				COMPARE s4,		MSK_BTN_LEFT
+				JUMP	NZ,		chk_btn_right
+				FETCH	s2,		SP_SPRITE_LOC
+				SUB		s2,		01			;x coordinate is 1 less now
+				STORE	s2, 	SP_SPRITE_LOC	; save value back
+				LOAD	s5,		E0
+				OUTPUT	s5,		PA_LEDS
+				;OR VALUE WITH GAME_INFO REGISTER
+				RETURN			;RIGHT?
+
+chk_btn_right:
+				LOAD	s3,		s0				;copy value
+				AND		s3,		MSK_BTN_RIGHT
+				COMPARE s4,		MSK_BTN_RIGHT
+				RETURN	NZ					;if not right or left button, no update...function?
+				FETCH	s2, 	SP_SPRITE_LOC
+				ADD		s2,		01			;x coordinate is 1 more now
+				STORE	s2, 	SP_SPRITE_LOC	; save value back
+				LOAD	s5,		07
+				OUTPUT	s5,		PA_LEDS
+				;OR VALUE WITH GAME_INFO REGISTER
+				RETURN			;RIGHT?	
+				
+				;;;;;;;;;;;;;;;;   COLLISION DETECTION ;;;;;;;;;;;;;;;;;;;;;;;
+				;IF COLLIDED, SEND STATUS BIT VIA GAME INFO AND GO INTO PAUSED STATE
+				;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+				
+; ==================================================================================;
+; ========== General functions used to check status of game and vehicle	============
+
+;THESE HAVEN'T BEEN DONE YET
+chk_collision:
+;LOAD CURRENT BOT LOCATION
+
+set_diff_level:
+
+chk_switch:
+;see which switches are enable to allow for different icons, speeds, etc...
+
+paused:
+;set the state and set bits to game info (just for game status)
+;all of these return
+
+
+
+chk_up_btn:
+;check if player wants to resume
+				;LOAD	s3,		s1					;copy value
+				;AND	s1,		MSK_..				;mask with up button
+
+chk_down_btn:
+;check if player wants to pause
+;don't make decisions about state or set any bits
+				;LOAD	s3,		s1					;copy value
+				;AND	s1,		MSK_..				;mask with down button
+				;COMPARE --
+				;UPDATE STATE?
+					
+				
+chk_all_btn:
+;see if any buttons have been pressed (  If not, vehicle location remains the same
+;NOTE:  could also 
+;turn on LEDS during game?
+				
+																			
 
 
 				
