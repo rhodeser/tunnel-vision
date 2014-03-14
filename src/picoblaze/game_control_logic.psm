@@ -133,11 +133,20 @@ CONSTANT	MSK_WALL_EDGE,	06
 
 CONSTANT	STATE,			28
 CONSTANT	SP_SCORE,		29
-CONSTANT	SP_SPRITE_LOC,	30
-CONSTANT	SP_BTN,		31
+CONSTANT	SP_SPRITE_LOC,	31
+CONSTANT	SP_BTN,			34
+CONSTANT	SP_CNT_0,		35
+CONSTANT	SP_CNT_1,		36
+CONSTANT	SP_CNT_2,		37
+CONSTANT	SP_CNT_3,		38
+
 
 CONSTANT	PAUSED_STATE,	00
 CONSTANT	ACTIVE_STATE,	01
+
+;CONSTANT	GameStatus		?		;incoming bit for collision information
+
+
 
 ; bit mask for LEDs
 CONSTANT	MSK_LEDS,		FF		; There are 8 LEDs on the Nexys 3
@@ -283,6 +292,14 @@ main:			CALL	init_btnluptbl				; initialize button to MotCtl lookup table
 				CALL	init_mvmttbl				; initialize movement to character code lookup table
 				LOAD	s1,		00					; clear the semaphore
 				STORE	s1,		SP_SEM				;
+				LOAD	s1,		00					; 
+				STORE	s1,		SP_CNT_0			; clear counters
+				LOAD	s1,		00					; 
+				STORE	s1,		SP_CNT_1			; clear counters
+				LOAD	s1,		00					; 
+				STORE	s1,		SP_CNT_2			; clear counters
+				LOAD	s1,		00					; 
+				STORE	s1,		SP_CNT_3			; clear counters				
 				LOAD	s1,		00					; turn off all of the decimal points
 				CALL	SS_wrdpts					;
 				STORE	s1,		SP_OLDDP			; and save the value	
@@ -294,7 +311,7 @@ main:			CALL	init_btnluptbl				; initialize button to MotCtl lookup table
 ; ==================
 													;	while(1) {  // main loop is an infinite loop
 main_L0:		FETCH	s6,		SP_SEM				;		while (SP_SEMA == 0)  {}   // loop until isr updates rojobot registers
-				COMPARE	s6,		00				;
+				COMPARE	s6,		00					;
 				JUMP	Z,		main_L0				;
 													; 
 				CALL	DEB_rdsw					;		s0 = switches
@@ -625,7 +642,7 @@ chk_btns:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
 				RETURN								; if so, return to main
 				
 ;TODO			
-
+				;create sys_update interface to interrupt and load GameStatus value 
 				;MAKE SURE REGISTERS AREN'T GETTING CLOBBERED
 				;updating game_info, do offset of base register ?
 				;WHAT HAPPENS IF GAME OVER AND PRESS RESUME?
@@ -633,13 +650,14 @@ chk_btns:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
 				;write a function to change game_info bits
 				;write function to output game_info
 				;possibly put in main
+				;should store all outputs in SP, then call function to output all in main (like wr_alldigits).
 				
 active:			
 				;manages functions when state is active
 				;updates state
 				;calls update_score, update_wall_loc, and update_width
 				;these need to modify game_info register as well
-				
+				CALL	display_score
 				LOAD 	s3,		ACTIVE_STATE
 				STORE	s3,		STATE
 				;OR game_info w/ state
@@ -754,34 +772,67 @@ update_wall_ori:	; get values from LFSR, do some logic checking, and send in reg
 				;JUMP	NZ, wall_left_case
 				;ADD	s2,		01		;if yes, increment x coordinate
 				;STORE	s2,		SP_WALL_X
-				;RETURN
-				
-wall_left_case:	
-				;COMPARE	RAND,	LEFT					;see if wall moving right ####
-				;RETURN		NZ					;IS THIS LEGAL? if not right, no update needed
-				;SUB	s2,		01				;
-				;STORE	s2,	SP_WALL_X
-				;RETURN
-
-;; add SP_WALL_X, SP_SCORE, RAND, #'S FOR GAME_INFO REGISTER BITS, 
+				;RETURN				
 
 ; ==================================================================================
 ; ========== General functions used to check status of game and vehicle	============
-
 ; ==================================================================================
-; ======================== Functions constraining LFSR =============================
 
 get_wall_ori:
           ;INPUT  s3,   random_gen
-          ;
+          
 
 
 set_diff_level:
 
 display_score:
+				;calculate first digit
+				FETCH	s2, 	SP_CNT_0
+				ADD		s2,		01
+				LOAD	Dig0,	s2					
+				LOAD	s3,		Dig0				;s3 contains incremented value before mask, used for 2nd digit
+				AND		Dig0,	MSK_HEXDIGIT		;put output value in Dig0 register, 0-9
+				STORE	s2,		SP_CNT_0
+				LOAD	s4,		10				;should work?
+				COMPARE	s4,		s3				;make sure register value isn't gone
+				JUMP	Z,		score1			;if we should increment next digit, call function
+				RETURN
+				
+score1:
 
+				FETCH	s2, 	SP_CNT_1		
+				ADD		s2,		01
+				LOAD	Dig1,	s2					
+				LOAD	s3,		Dig1				;s3 contains incremented value before mask, used for 2nd digit
+				AND		Dig1,	MSK_HEXDIGIT		;put output value in Dig0 register, 0-9
+				STORE	s2,		SP_CNT_1
+				LOAD	s4,		10				;should work?
+				COMPARE	s4,		s3				;make sure register value isn't gone
+				JUMP	Z,		score2			;if we should increment next digit, call function
+				RETURN
 
+score2:
 
+				FETCH	s2, 	SP_CNT_2		
+				ADD		s2,		01
+				LOAD	Dig2,	s2					
+				LOAD	s3,		Dig2				;s3 contains incremented value before mask, used for 2nd digit
+				AND		Dig2,	MSK_HEXDIGIT		;put output value in Dig0 register, 0-9
+				STORE	s2,		SP_CNT_2
+				LOAD	s4,		10				;should work?
+				COMPARE	s4,		s3				;make sure register value isn't gone
+				JUMP	Z,		score3			;if we should increment next digit, call function
+				RETURN
+				
+score3:
+
+				FETCH	s2, 	SP_CNT_3		
+				ADD		s2,		01
+				LOAD	Dig3,	s2					
+				LOAD	s3,		Dig3				;s3 contains incremented value before mask, used for 2nd digit
+				AND		Dig3,	MSK_HEXDIGIT		;put output value in Dig0 register, 0-9
+				STORE	s2,		SP_CNT_3
+				RETURN
 
 chk_switch:
 ;see which switches are enable to allow for different icons, speeds, etc...
