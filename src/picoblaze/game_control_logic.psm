@@ -134,6 +134,7 @@ CONSTANT	MSK_WALL_EDGE,	06
 CONSTANT	STATE,			28
 CONSTANT	SP_SCORE,		29
 CONSTANT	SP_SPRITE_LOC,	30
+CONSTANT	SP_BTN,		31
 
 CONSTANT	PAUSED_STATE,	00
 CONSTANT	ACTIVE_STATE,	01
@@ -607,10 +608,10 @@ next_loc:		LOAD	s0,		LocX				; Dig[3:2] gets X-coordinate
 next_step:		
 	;=========================================================================
 ;;;;;;;	---------------------------		OLD STUFF	----------------------------
-				CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
-				CALL	btn2mot						; and calculate new MotCtl - returned in s1
-				OUTPUT	s1,		PA_MOTCTL_IN		; tell Rojobot what to do
-				RETURN	
+;				CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
+;				CALL	btn2mot						; and calculate new MotCtl - returned in s1
+;				OUTPUT	s1,		PA_MOTCTL_IN		; tell Rojobot what to do
+;				RETURN	
 ;;;;;;;=========================================================================
 				
 				CALL	chk_collision				; First see if the game is over
@@ -618,6 +619,8 @@ next_step:
 
 				
 chk_btns:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
+				LOAD	s1,	s0						;copy and store value
+				STORE	s1,	SP_BTN
 				CALL	chk_up_btn					; see if user wants to pause
 				RETURN								; if so, return to main
 				
@@ -640,14 +643,16 @@ active:
 				LOAD 	s3,		ACTIVE_STATE
 				STORE	s3,		STATE
 				;OR game_info w/ state
-				CALL	update_score
-				CALL	update_wall_ori
+				;CALL	update_score
+				;CALL	update_wall_ori
 				;CALL	update_wall_width		; possibly not needed?
 														;
 chk_collision:
 				;checks for collision, if so, updates state, outputs led pattern, outputs 
 				;game_info register with paused state info
 				;LOAD	s2,		map_info		;needs to get this from map.v 
+				;DUMMY VALUE
+				LOAD	s2,		00
 				AND		s2,		MSK_COLLISION	;make this CONSTANT
 				LOAD	s3,		MSK_COLLISION
 				COMPARE s2,		s3				
@@ -665,7 +670,7 @@ chk_collision:
 				
 chk_up_btn:
 ;check if player wants to pause
-				LOAD	s3,		s0			;copy value...needed?
+				FETCH	s0,		SP_BTN
 				AND		s0,		MSK_BTN_UP				;mask with up button
 				COMPARE s3,		MSK_BTN_UP
 				JUMP NZ, 	chk_no_btn
@@ -684,7 +689,7 @@ chk_no_btn:
 ;see if no buttons have been pressed - if so, check the state, and if in active, update everything
 ;if paused, just return
 				
-				LOAD	s3,		s0				;copy value...needed?
+				FETCH	s0,		SP_BTN
 				AND		s0,		MSK_BTN_NONE	
 				COMPARE s3,		MSK_BTN_NONE
 				JUMP NZ, 	chk_down_btn
@@ -698,7 +703,7 @@ chk_no_btn:
 chk_down_btn:
 ;check if player wants to resume (if game is active and is pressed, nothing will change)
 				CALL active					;we can also call active for everyone here since we know we're moving
-				LOAD	s3,		s0					;copy value
+				FETCH	s0,		SP_BTN
 				AND		s0,		MSK_BTN_DOWN				;mask with down button
 				COMPARE s3,		MSK_BTN_DOWN
 				JUMP NZ, 	chk_left_btn
@@ -708,7 +713,7 @@ chk_down_btn:
 
 
 chk_left_btn:
-				LOAD	s4,		s0				;copy value
+				FETCH	s0,		SP_BTN
 				AND		s4,		MSK_BTN_LEFT
 				COMPARE s4,		MSK_BTN_LEFT	;see if left button pressed
 				JUMP	NZ,		chk_right_btn	;if not, check the right button
@@ -722,7 +727,7 @@ chk_left_btn:
 
 				
 chk_right_btn:
-				LOAD	s3,		s0				;copy value
+				FETCH	s0,		SP_BTN
 				AND		s3,		MSK_BTN_RIGHT
 				COMPARE s4,		MSK_BTN_RIGHT
 				FETCH	s2, 	SP_SPRITE_LOC
@@ -745,9 +750,9 @@ update_score:	;Look at proj1 verilog?  Need digits logic.  have another counter 
 				;have a counter for however many cycles before changing.  Then check the bits 
 update_wall_ori:	; get values from LFSR, do some logic checking, and send in register
 				;FETCH	s2,		SP_WALL_X					
-				;COMPARE	RAND,	RIGHT					;see if wall moving right ####
+				;COMPARE	RAND,	RIGHT		;see if wall moving right ####
 				;JUMP	NZ, wall_left_case
-				;ADD	s2,		01							;if yes, increment x coordinate
+				;ADD	s2,		01		;if yes, increment x coordinate
 				;STORE	s2,		SP_WALL_X
 				;RETURN
 				
@@ -760,12 +765,23 @@ wall_left_case:
 
 ;; add SP_WALL_X, SP_SCORE, RAND, #'S FOR GAME_INFO REGISTER BITS, 
 
-; ==================================================================================;
+; ==================================================================================
 ; ========== General functions used to check status of game and vehicle	============
+
+; ==================================================================================
+; ======================== Functions constraining LFSR =============================
+
+get_wall_ori:
+          ;INPUT  s3,   random_gen
+          ;
+
 
 set_diff_level:
 
 display_score:
+
+
+
 
 chk_switch:
 ;see which switches are enable to allow for different icons, speeds, etc...

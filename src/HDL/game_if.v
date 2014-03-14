@@ -37,6 +37,7 @@ module game_interface(
 	
 	input		[3:0]		db_btns,
 	input		[7:0]		db_sw,
+	input		[1:0]		randomized_value,
 	
 	// LED OUT
 	

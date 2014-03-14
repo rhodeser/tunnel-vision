@@ -264,13 +264,13 @@ wire	[9:0]			vid_col_shifted;
 );
 
 // INSTANTIATE THE LFSR
-	
+	/*
 	lfsr lfsr(
 		.clk						(sysclk),
 		.reset					(sysreset),
 		.randomized_value		(random_value) 
 	);
-
+*/
 ////////////////////////PART II STARTS HERE//////////////
 
 
