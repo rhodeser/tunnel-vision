@@ -116,7 +116,10 @@ begin
 
 		8'h01			:begin
 								in_port <= db_sw; 						
-						 end					 
+						 end				
+		8'h0F			:begin
+								in_port <= randomized_value; 						
+						 end							 
 									 
 	 endcase
 end

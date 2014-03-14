@@ -110,6 +110,7 @@ wire				read_strobe;
 wire				interrupt;
 wire				interrupt_ack;
 //wire 	[7:0]		led;
+wire  [7:0]		random_value;
 
 
 ////////////BOT.V///////////////
@@ -225,7 +226,8 @@ wire	[9:0]			vid_col_shifted;
 		.read_strobe(read_strobe),
 		.interrupt(interrupt),
 		.interrupt_ack(interrupt_ack),
-		.led(led)
+		.led(led),
+		.randomized_value(random_value)
 	);	
 	
 	
@@ -260,6 +262,14 @@ wire	[9:0]			vid_col_shifted;
 		.clk 				(sysclk)
 
 );
+
+// INSTANTIATE THE LFSR
+	
+	lfsr lfsr(
+		.clk						(sysclk),
+		.reset					(sysreset),
+		.randomized_value		(random_value) 
+	);
 
 ////////////////////////PART II STARTS HERE//////////////
 
