@@ -129,7 +129,9 @@ CONSTANT	MSK_CENTER,		01
 CONSTANT	MSK_LEFT,		10	
 
 CONSTANT	MSK_COLLISION,	01
-CONSTANT	MSK_WALL_EDGE,	06
+CONSTANT	MSK_NUM_VEH,	11
+CONSTANT	MSK_NUM_LEV,	01
+CONSTANT	MSK_NUM_BKGRND,	11
 
 CONSTANT	STATE,			28
 CONSTANT	SP_SCORE,		29
@@ -139,6 +141,10 @@ CONSTANT	SP_CNT_0,		35
 CONSTANT	SP_CNT_1,		36
 CONSTANT	SP_CNT_2,		37
 CONSTANT	SP_CNT_3,		38
+CONSTANT	SP_BTN2,		39
+CONSTANT	SP_NUM_VEH,		40
+CONSTANT	SP_NUM_LEV,		41
+CONSTANT	SP_NUM_BKGRND,	42
 
 
 CONSTANT	PAUSED_STATE,	00
@@ -312,6 +318,8 @@ main:			CALL	init_btnluptbl				; initialize button to MotCtl lookup table
 													;	while(1) {  // main loop is an infinite loop
 main_L0:		FETCH	s6,		SP_SEM				;		while (SP_SEMA == 0)  {}   // loop until isr updates rojobot registers
 				COMPARE	s6,		00					;
+				CALL	display_score				;remove these 2 later
+				CALL	wr_alldigits
 				JUMP	Z,		main_L0				;
 													; 
 				CALL	DEB_rdsw					;		s0 = switches
@@ -655,15 +663,12 @@ chk_btns:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
 active:			
 				;manages functions when state is active
 				;updates state
-				;calls update_score, update_wall_loc, and update_width
 				;these need to modify game_info register as well
 				CALL	display_score
 				LOAD 	s3,		ACTIVE_STATE
 				STORE	s3,		STATE
 				;OR game_info w/ state
-				;CALL	update_score
-				;CALL	update_wall_ori
-				;CALL	update_wall_width		; possibly not needed?
+
 														;
 chk_collision:
 				;checks for collision, if so, updates state, outputs led pattern, outputs 
@@ -757,33 +762,10 @@ chk_right_btn:
 				RETURN	
 
 
-update_score:	;Look at proj1 verilog?  Need digits logic.  have another counter so score is lower?
-				FETCH	s2,		SP_SCORE				;increment score and display on 7seg
-				ADD		s2,		01							;increment location by 1
-				STORE	s2,		SP_SCORE
-				;OUTPUT		;output to 7 seg
-				RETURN
-				
-				
-				;have a counter for however many cycles before changing.  Then check the bits 
-update_wall_ori:	; get values from LFSR, do some logic checking, and send in register
-				;FETCH	s2,		SP_WALL_X					
-				;COMPARE	RAND,	RIGHT		;see if wall moving right ####
-				;JUMP	NZ, wall_left_case
-				;ADD	s2,		01		;if yes, increment x coordinate
-				;STORE	s2,		SP_WALL_X
-				;RETURN				
-
+			
 ; ==================================================================================
-; ========== General functions used to check status of game and vehicle	============
+; ============== Score keeping functions 	================
 ; ==================================================================================
-
-get_wall_ori:
-          ;INPUT  s3,   random_gen
-          
-
-
-set_diff_level:
 
 display_score:
 				;calculate first digit
@@ -832,19 +814,83 @@ score3:
 				LOAD	s3,		Dig3				;s3 contains incremented value before mask, used for 2nd digit
 				AND		Dig3,	MSK_HEXDIGIT		;put output value in Dig0 register, 0-9
 				STORE	s2,		SP_CNT_3
+				LOAD	s4,		10				;should work?
+				COMPARE	s4,		s3				;make sure register value isn't gone
+				JUMP	Z,		max_score
 				RETURN
 
-chk_switch:
-;see which switches are enable to allow for different icons, speeds, etc...
-
-
-;				FETCH	s0,		STATE	
-;				COMPARE	S0,		ACTIVE_STATE	;Pick which state based on values
-;				JUMP	NZ,		paused
-;				CALL	active
-;				RETURN
+max_score:
+			LOAD	s1,		09
+			LOAD	Dig0,	s1
+			LOAD	Dig1,	s1	
+			LOAD	Dig2,	s1
+			LOAD	Dig3,	s1
+			LOAD	s2,		00
+			STORE	s2,		SP_CNT_0
+			STORE	s2,		SP_CNT_1
+			STORE	s2,		SP_CNT_2
+			STORE	s2,		SP_CNT_3
+			
+			RETURN
+			
 
 				
+; ==================================================================================
+; ============== If the switch is up, display different options 	================
+; Pushbuttons now have different options:
+; Left/Right - Change Vehicle
+; Up - Change Background
+; Change difficulty
+; Change Number of tunnels.  Have 5 bits to work with
+; ==================================================================================
+;OUTPUT LEDS TO SAY WHICH LEVEL IT'S AT?
+chk_btns2:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
+				LOAD	s1,	s0						;copy and store value
+				STORE	s1,	SP_BTN2
+				CALL	chk_vehicle					; see if user wants to pause
+				CALL	chk_background
+				CALL	chk_level
+				RETURN								; if so, return to main
+		
+
+chk_vehicle:
+				FETCH	s0,		SP_BTN2
+				AND		s0,		MSK_BTN_LEFT				;mask with up button
+				COMPARE s3,		MSK_BTN_LEFT
+				RETURN NZ						;CALL OTHER CHECKS IF THIS ONE NOT PRESSED
+				FETCH	s2,		SP_NUM_VEH
+				ADD		s2,		01
+				AND		s2,		MSK_NUM_VEH		; SHOULD BE 11, FOR 4 VEH TOTAL
+				;XOR WITH GAME_INFO
+				STORE	s2,		SP_NUM_VEH
+				RETURN
+
+chk_background:
+				FETCH	s0,		SP_BTN2
+				AND		s0,		MSK_BTN_UP				;mask with up button
+				COMPARE s3,		MSK_BTN_UP
+				RETURN NZ						;CALL OTHER CHECKS IF THIS ONE NOT PRESSED
+				FETCH	s2,		SP_NUM_BKGRND
+				ADD		s2,		01
+				AND		s2,		MSK_NUM_BKGRND		; SHOULD BE 11, FOR 4 VEH TOTAL
+				;XOR WITH GAME_INFO
+				STORE	s2,		SP_NUM_BKGRND
+				RETURN
+
+chk_level:		
+				FETCH	s0,		SP_BTN2
+				AND		s0,		MSK_BTN_DOWN				;mask with up button
+				COMPARE s3,		MSK_BTN_DOWN
+				RETURN NZ						;CALL OTHER CHECKS IF THIS ONE NOT PRESSED
+				FETCH	s2,		SP_NUM_LEV
+				ADD		s2,		01
+				AND		s2,		MSK_NUM_LEV		; SHOULD BE 11, FOR 4 VEH TOTAL
+				;XOR WITH GAME_INFO
+				STORE	s2,		SP_NUM_LEV
+				RETURN
+
+
+			
 ;*************************
 ; Nexys3 I/O Functions
 ;*************************

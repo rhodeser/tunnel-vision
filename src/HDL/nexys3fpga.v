@@ -109,7 +109,7 @@ wire				write_strobe;
 wire				read_strobe;
 wire				interrupt;
 wire				interrupt_ack;
-//wire 	[7:0]		led;
+wire 	[7:0]		led;
 wire  [7:0]		random_value;
 
 
