@@ -21,6 +21,7 @@
 module game_interface(
 
 	input					clk,
+	input 					rst,
 	output reg	[7:0]		game_info,
 	//input					upd_sysregs,
 	
@@ -38,7 +39,7 @@ module game_interface(
 	input		[3:0]		db_btns,
 	input		[7:0]		db_sw,
 	input		[1:0]		randomized_value,
-	
+	input 					game_status,
 	// LED OUT
 	
 	output reg [7:0]		led,
@@ -54,13 +55,13 @@ module game_interface(
 	input					write_strobe,
 	input					read_strobe,
 	
-	output reg				interrupt,
-	
+	output reg				interrupt,	
 	input					interrupt_ack
 	
-
+	
     );
 	 
+reg [25:0] count;
 
 always @(posedge clk)
 begin
@@ -120,8 +121,10 @@ begin
 						 end				
 		8'h0F			:begin
 								in_port <= randomized_value; 						
-						 end							 
-									 
+						 end	
+		8'h02			:begin
+								in_port <= game_status;
+						end									 
 	 endcase
 end
 	
@@ -129,20 +132,34 @@ end
 	// INTERRUPT & INTERRUPT ACK
 always @ (posedge clk)
 	begin
-		interrupt <= 1'b0;
-/*	
-		if(interrupt_ack == 1'b1)
-		begin
-			interrupt <= 1'b0;
+		if(rst) begin
+			count = 26'b0;
 		end
-		else
-		begin
-			if(upd_sysregs == 1'b1)
-			begin
+		else begin
+			if(count <= 50000000) begin
+				count <= count +1;
+			end
+			else begin
+				count <= 0;
 				interrupt <= 1'b1;
 			end
 		end
-*/		
+	
+		if (rst) begin
+			interrupt <= 1'b0;
+		end
+		else begin
+			if(interrupt_ack == 1'b1)
+			begin
+				interrupt <= 1'b0;
+			end
+			else
+			begin
+				if(count == 50000000)
+				begin
+					interrupt <= 1'b1;
+				end
+			end
+		end		
 	end
-
 endmodule
