@@ -52,7 +52,8 @@
 NAMEREG		sF,		LocX			; rojobot location - x coordinate
 NAMEREG		sE,		LocY			; rojobot location - y coordinate
 NAMEREG		sD,		Sensor			; rojobot sensor values
-NAMEREG		sC,		Botinf			; rojobot movement and orientation values
+NAMEREG		sC,		Colinf			; rojobot movement and orientation values
+					;renamed from Botinf
 NAMEREG		sB,		MVst			; state variable for movement indicator
 NAMEREG		sA,		Dig3			; 7-segment display digit 3
 NAMEREG		s9,		Dig2			; 7-segment display digit 2
@@ -83,6 +84,7 @@ CONSTANT	PA_MOTCTL_IN,	09		; (o) Rojobot motor control output from system
 CONSTANT	PA_LOCX,		0A		; (i) X coordinate of rojobot location
 CONSTANT	PA_LOCY,		0B		; (i))Y coordinate of rojobot location
 CONSTANT	PA_BOTINFO,		0C		; (i) Rojobot info register
+CONSTANT	PA_COLLINFO,	02		
 CONSTANT	PA_SENSORS,		0D		; (i) Sensor register
 CONSTANT	PA_LMDIST,		0E		; (i) Rojobot left motor distance register
 CONSTANT	PA_RMDIST,		0F		; (i) Rojobot right motor distance register
@@ -118,16 +120,17 @@ CONSTANT	MSK_SW0,		01		; Slide switch 0 is bit 0
 ; =============================================================
 ; -----------------------TUNNEL VISION-------------------------
 
-
+;Values for masking port # to create correct game_info output
 CONSTANT	MSK_SPRITE,		03
-CONSTANT	MSK_WALL,		0C	
-CONSTANT	MSK_WALL_WIDTH,	10
-CONSTANT	MSK_GAME_STAT,	20
-CONSTANT	MSK_LEVEL,		C0
+CONSTANT	MSK_GAME_STAT,	04
+CONSTANT	MSK_LEVEL,		18
+CONSTANT	MSK_ICON,		60
+CONSTANT	MSK_BKGRND,		80
 CONSTANT	MSK_RIGHT,		00
 CONSTANT	MSK_CENTER,		01
 CONSTANT	MSK_LEFT,		10	
 
+;values to index the number of options player can select
 CONSTANT	MSK_COLLISION,	01
 CONSTANT	MSK_NUM_VEH,	11
 CONSTANT	MSK_NUM_LEV,	01
@@ -137,7 +140,7 @@ CONSTANT	STATE,			28
 CONSTANT	SP_SCORE,		29
 CONSTANT	SP_SPRITE_LOC,	31
 CONSTANT	SP_BTN,			34
-CONSTANT	SP_CNT_0,		35
+CONSTANT	SP_CNT_0,		35		;score counters
 CONSTANT	SP_CNT_1,		36
 CONSTANT	SP_CNT_2,		37
 CONSTANT	SP_CNT_3,		38
@@ -145,10 +148,12 @@ CONSTANT	SP_BTN2,		39
 CONSTANT	SP_NUM_VEH,		40
 CONSTANT	SP_NUM_LEV,		41
 CONSTANT	SP_NUM_BKGRND,	42
-
+CONSTANT	SP_GAME_INFO,	43
 
 CONSTANT	PAUSED_STATE,	00
 CONSTANT	ACTIVE_STATE,	01
+
+CONSTANT	PA_GAME_INFO,	09			;port to interface sending information to map
 
 ;CONSTANT	GameStatus		?		;incoming bit for collision information
 
@@ -162,7 +167,7 @@ CONSTANT	MSK_LEDS,		FF		; There are 8 LEDs on the Nexys 3
 CONSTANT	MSK_CCODE,		1F		; Character codes are in lower 5 bits
 CONSTANT	MSK_DECPTS,		0F		; Decimal points are in bits 3 to 0
 CONSTANT	MSK_HEXDIGIT,	0F		; Hex digits only take 4 bits
-
+CONSTANT	MSK_DECDIGIT,	09
 
 ; nibble masks
 CONSTANT	MSKLOWNIB,		0F		; Mask out high nibble of byte
@@ -305,9 +310,23 @@ main:			CALL	init_btnluptbl				; initialize button to MotCtl lookup table
 				LOAD	s1,		00					; 
 				STORE	s1,		SP_CNT_2			; clear counters
 				LOAD	s1,		00					; 
-				STORE	s1,		SP_CNT_3			; clear counters				
+				STORE	s1,		SP_CNT_3			; clear counters	
+				LOAD	s1,		00
+				STORE	s1,		SP_GAME_INFO
+				LOAD	s1,		00
+				STORE	s1,		STATE
+				
+				;OTHERS to initialize...necessary?
+				STORE	s1,		MSK_NUM_VEH
+				STORE	s1,		MSK_NUM_LEV	
+				STORE	s1,		MSK_NUM_BKGRND
+				STORE	s1,		SP_BTN2		
+				STORE	s1,		SP_NUM_VEH		
+				STORE	s1,		SP_NUM_LEV		
+				STORE	s1,		SP_NUM_BKGRND
+				
 				LOAD	s1,		00					; turn off all of the decimal points
-				CALL	SS_wrdpts					;
+				;CALL	SS_wrdpts					;
 				STORE	s1,		SP_OLDDP			; and save the value	
 				ENABLE	INTERRUPT					; get the ball rolling
 									
@@ -318,23 +337,29 @@ main:			CALL	init_btnluptbl				; initialize button to MotCtl lookup table
 													;	while(1) {  // main loop is an infinite loop
 main_L0:		FETCH	s6,		SP_SEM				;		while (SP_SEMA == 0)  {}   // loop until isr updates rojobot registers
 				COMPARE	s6,		00					;
-				CALL	display_score				;remove these 2 later
-				CALL	wr_alldigits
+		;		CALL	display_score				;remove these 2 later
+		;		CALL	wr_alldigits
 				JUMP	Z,		main_L0				;
 													; 
 				CALL	DEB_rdsw					;		s0 = switches
 				TEST	s0,		MSK_SW0				;		if (sw[0] == 0)   // display the Rojobot location
 				JUMP	NZ,		main_L1				; -- Z = 0 says switch is 'on'
-				CALL	next_loc					;			Dig[3:2] = LocX; Dig[1:0] = LocY
+				
+				;if switch is on...? then display_opts and not score.  
+				;note - should be display opts, debugging now
+				CALL	display_score
+				;CALL	display_opts				;Doesn't currently display differences, will update game_info though
 				JUMP	main_L2						;
 													;		else {  // display movement and heading
-main_L1:		CALL	next_mvmt					;			Dig[3] = next movement
-				CALL	next_hdg					;			Dig[2:0] = next heading
+main_L1:		CALL	display_score				;			Dig[3] = next movement
+				;CALL	next_hdg					;			Dig[2:0] = next heading
 													;		}
 main_L2:		CALL	wr_alldigits				;		write all of the digits to the display
 				LOAD	s1,		Sensor				;		update LEDs with new sensor information
-				CALL	LED_wrleds					;															;
+				;CALL	LED_wrleds					;															;
 				CALL	next_step					;		tell rojobot what to do next
+				LOAD	s2,		SP_GAME_INFO
+				OUTPUT	s2,		PA_GAME_INFO		;PORT 9?
 				FETCH	s6,		SP_SEM
 				SUB		s6,		01					;		decrement semaphore
 				STORE	s6,		SP_SEM				;
@@ -515,114 +540,6 @@ mvmt2cc:		LOAD	s2,		SP_MVMTBASE			; s2 gets base of movment conversion table
 ; Modify this function for Project 2 #####	
 ;#########################################			
 			
-; ========================================================================
-; === next_mvmt() - Calculate  digit for motion indicator              ===
-; === Registers affected: Dig3, s0                                     ===
-; === Uses Botinf (Bot Info register) to get movement.                 ===
-; ========================================================================				
-next_mvmt:		LOAD	s0,		Botinf				; s0[3:0] = Botinf[7:4]
-				SR0		s0							; 
-				SR0		s0							;
-				SR0		s0							;
-				SR0		s0							;
-				CALL	mvmt2cc						; translate movement to char code
-				LOAD	Dig3,	s1					; and move to digit 3
-				RETURN				
-								
-
-; ==============================================================================
-; === next_hdg() - Calculate  digits for heading (compass setting)           ===
-; === Registers affected: Dig2, Dig1, Dig0, s0, s1, s2, s3,s4, s5, s6        ===
-; === Uses Botinf (Bot Info register) to get orientation.  Calculates digits ===
-; === with a case statement based on orientation.                            ===  
-; ==============================================================================				
-next_hdg:		LOAD	s0,		Botinf				; s0[2:0] = Botinf[2:0] = orientation
-				AND		s0,		MSKORIENT			; 
-													; switch(orientation)  {
-nh_caseORN:		COMPARE	s0,		OR_N			;	case(OR_N):
-				JUMP	NZ,		nh_caseORNE			; 
-				LOAD	s4,		00					;		Dig[2:0] = 000
-				LOAD	s5,		00					;
-				LOAD	s6,		00					;
-				JUMP	nh_endcase					;		break;
-													;
-nh_caseORNE:	COMPARE	s0,		OR_NE			;	case (OR_NE):
-				JUMP	NZ,		nh_caseORE			;
-				LOAD	s4,		00					;		Dig[2:0] = 045
-				LOAD	s5,		04					;
-				LOAD	s6,		05					;				
-				JUMP	nh_endcase					;		break;
-								
-nh_caseORE:		COMPARE	s0,		OR_E			;	case (OR_E):
-				JUMP	NZ,		nh_caseORSE			;
-				LOAD	s4,		00					;		Dig[2:0] = 090
-				LOAD	s5,		09					;
-				LOAD	s6,		00					;
-				JUMP	nh_endcase					;		break;						
-
-nh_caseORSE:	COMPARE	s0,		OR_SE			;	case (OR_SE):
-				JUMP	NZ,		nh_caseORS			;
-				LOAD	s4,		01					;		Dig[2:0] = 135
-				LOAD	s5,		03					;
-				LOAD	s6,		05					;
-				JUMP	nh_endcase					;		break;						
-
-nh_caseORS:		COMPARE	s0,		OR_S			;	case (OR_S):
-				JUMP	NZ,		nh_caseORSW			;
-				LOAD	s4,		01					;		Dig[2:0] = 180
-				LOAD	s5,		08					;
-				LOAD	s6,		00					;
-				JUMP	nh_endcase					;		break;						
-
-nh_caseORSW:	COMPARE	s0,		OR_SW			;	case (OR_SW):
-				JUMP	NZ,		nh_caseORW			;
-				LOAD	s4,		02					;		Dig[2:0] = 225
-				LOAD	s5,		02					;
-				LOAD	s6,		05					;
-				JUMP	nh_endcase					;		break;						
-				
-nh_caseORW:		COMPARE	s0,		OR_W			;	case (OR_W):
-				JUMP	NZ,		nh_caseORNW			;
-				LOAD	s4,		02					;		Dig[2:0] = 270
-				LOAD	s5,		07					;
-				LOAD	s6,		00					;
-				JUMP	nh_endcase					;		break;						
-				
-													;	case (OR_NW):  // only remaining case
-nh_caseORNW:	LOAD	s4,		03					;		Dig[2:0] = 315
-				LOAD	s5,		01					;
-				LOAD	s6,		05					;
-													; } // end of switch statement
-nh_endcase:		LOAD	Dig2,	s4					;
-				LOAD	Dig1,	s5					;
-				LOAD	Dig0,	s6					;
-				RETURN	
-			
-
-; ==============================================================================
-; === next_loc() - Calculate digits for Rojobot location                     ===
-; === Registers affected: Dig3, Dig2, Dig1, Dig0, s0                         ===
-; === Uses LocX and LocY to get location.                                    ===  
-; ==============================================================================
-next_loc:		LOAD	s0,		LocX				; Dig[3:2] gets X-coordinate
-				LOAD	Dig2,	s0					; Digit 2 gets lower nibble
-				AND		Dig2,	MSK_HEXDIGIT		;
-				SR0		s0							; Digit3 gets upper nibble
-				SR0		s0							; 
-				SR0		s0							; 
-				SR0		s0							;	
-				LOAD	Dig3,	s0					;
-				
-				LOAD	s0,		LocY				; Dig[1:0] gets Y-coordinate
-				LOAD	Dig0,	s0					; Digit 0 gets lower nibble
-				AND		Dig0,	MSK_HEXDIGIT		; 
-				SR0		s0							; Digit 1 gets upper nibble
-				SR0		s0							;
-				SR0		s0							;
-				SR0		s0							;	
-				LOAD	Dig1,	s0					;
-				RETURN					
-			
 
 ; ==============================================================================
 ; === next_step() - Tells rojobot what to do next                            ===    
@@ -650,6 +567,12 @@ chk_btns:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
 				RETURN								; if so, return to main
 				
 ;TODO			
+				;RESET logic doesn't work that well...?
+				;don't need to check switch 1 unless "paused" or really, at the beginning.  count have if counter = 0
+				;display_opts will just overwrite the Dig values? 
+				;main logic so far - will not keep score when switched, and always calls..maybe.
+				;update main so doesn't output old stuff but outputs new stuff, and goes based off switch
+				;is 09 correct port for PA_GAME_INF0?
 				;create sys_update interface to interrupt and load GameStatus value 
 				;MAKE SURE REGISTERS AREN'T GETTING CLOBBERED
 				;updating game_info, do offset of base register ?
@@ -659,50 +582,67 @@ chk_btns:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
 				;write function to output game_info
 				;possibly put in main
 				;should store all outputs in SP, then call function to output all in main (like wr_alldigits).
-				
+				;or if 1, and with converse if 0.  any shortcuts here?
+				;CREATE OUTPUT 	GAME_INFO, ...? OR IN MAIN?
+				;Sprite: 00 = straight, 01 = right, 10 = left, 11 = ?  straight?
+				;game status:  0 = paused, 1 = active
 active:			
 				;manages functions when state is active
 				;updates state
 				;these need to modify game_info register as well
-				CALL	display_score
+				CALL	update_score
+				;CALL 	display_score
 				LOAD 	s3,		ACTIVE_STATE
 				STORE	s3,		STATE
-				;OR game_info w/ state
+				;UPDate game info for state as well?
+				;LOAD	s0,		00
+				;OUTPUT	s0,		PA_LEDS				;clear bits? probably not needed
+				FETCH	s3,		SP_GAME_INFO
+				LOAD 	s4,		MSK_GAME_STAT
+				OR		s3,		s4				;update status to be active
+				STORE	s3,		SP_GAME_INFO
+				RETURN
+				
+update_info:			;puts new information to game_info output to map.v.  Doesn't output 
+				;TODO: INITIALIZE TO 0
 
 														;
 chk_collision:
 				;checks for collision, if so, updates state, outputs led pattern, outputs 
 				;game_info register with paused state info
-				;LOAD	s2,		map_info		;needs to get this from map.v 
-				;DUMMY VALUE
+	;UNCOMMENT HERE			;LOAD	s2,		Colinf			;needs to get this from map.v 
+				;DUMMY VALUE below, change for later
 				LOAD	s2,		00
-				AND		s2,		MSK_COLLISION	;make this CONSTANT
+				AND		s2,		MSK_COLLISION		;see if we have a collision
 				LOAD	s3,		MSK_COLLISION
 				COMPARE s2,		s3				
-				JUMP 	NZ,		chk_btns
+				JUMP 	NZ,		chk_btns			;if no collision, move on to checking buttons
 				LOAD 	s3,		PAUSED_STATE
-				STORE	s3,		STATE 
+				STORE	s3,		STATE 				;if we do have a collision, update state to paused and 
+				;update status for game_info output	;send this info out to the game_info register
+				FETCH	s3,		SP_GAME_INFO
+				LOAD 	s4,		FB
+				AND		s3,		s4				;update status to be paused
+				STORE	s3,		SP_GAME_INFO
 				LOAD	s5,		FF				;output pattern for leds
 				OUTPUT	s5,		PA_LEDS
-				;FETCH	game_info
-				;OR paused bit with game_info
-				;STORE	game_info
-				;OUTPUT	game_info
 				RETURN
 				
 				
 chk_up_btn:
 ;check if player wants to pause
-				FETCH	s0,		SP_BTN
-				AND		s0,		MSK_BTN_UP				;mask with up button
-				COMPARE s3,		MSK_BTN_UP
-				JUMP NZ, 	chk_no_btn
-				LOAD 	s3,		PAUSED_STATE
-				STORE	s3,		STATE
+				;output 
 				
-				;since we want to pause, just update status register
-				;UPDATE game_info
-				;OUTPUT GAME_INFO
+				FETCH	s2,		SP_BTN					;load saved debounce button
+				AND		s2,		MSK_BTN_UP				;mask with up button
+				COMPARE s2,		MSK_BTN_UP
+				JUMP NZ, 	chk_no_btn					;go to next phase if no up button
+				LOAD 	s3,		PAUSED_STATE			;else pause and send out that register
+				STORE	s3,		STATE
+				FETCH	s3,		SP_GAME_INFO
+				LOAD 	s4,		FB
+				AND		s3,		s4				;update status to be paused
+				STORE	s3,		SP_GAME_INFO
 				LOAD	s5,		FF				;output pattern for leds
 				OUTPUT	s5,		PA_LEDS
 				RETURN
@@ -712,53 +652,66 @@ chk_no_btn:
 ;see if no buttons have been pressed - if so, check the state, and if in active, update everything
 ;if paused, just return
 				
-				FETCH	s0,		SP_BTN
-				AND		s0,		MSK_BTN_NONE	
-				COMPARE s3,		MSK_BTN_NONE
-				JUMP NZ, 	chk_down_btn
-				FETCH	s4,		STATE
-				COMPARE	s4,		PAUSED_STATE
-				RETURN	Z				;DOES THIS WORK?
-				CALL active
+				FETCH	s2,		SP_BTN					;grab debounced values
+				AND		s2,		MSK_BTN_NONE	
+				COMPARE s2,		MSK_BTN_NONE			;check if any buttons pressed
+				JUMP NZ, 	chk_down_btn				;if a button is pressed, check the next
+				FETCH	s4,		STATE					;if not, check the state
+				COMPARE	s4,		PAUSED_STATE			;if we're in the paused state
+				;LOAD	s3,		SP_GAME_INFO
+				;OUTPUT	s3,		PA_LEDS
+				RETURN	Z					;return and don't update anything since paused
+				CALL active					;if no buttons are pressed but it's not paused, still update score and state
 				RETURN
 
 				
 chk_down_btn:
 ;check if player wants to resume (if game is active and is pressed, nothing will change)
 				CALL active					;we can also call active for everyone here since we know we're moving
-				FETCH	s0,		SP_BTN
-				AND		s0,		MSK_BTN_DOWN				;mask with down button
-				COMPARE s3,		MSK_BTN_DOWN
-				JUMP NZ, 	chk_left_btn
-				LOAD	s5,		FF				;output pattern for leds
-				OUTPUT	s5,		PA_LEDS
+				FETCH	s2,		SP_BTN				;get debounced values
+				AND		s2,		MSK_BTN_DOWN				;mask with down button
+				COMPARE s2,		MSK_BTN_DOWN				
+				JUMP NZ, 	chk_left_btn					;if not down button, go to next test
+				;LOAD	s5,		FF				;  Want to output values?  Should be none since resuming
+				;OUTPUT	s5,		PA_LEDS
 				RETURN
 
 
 chk_left_btn:
-				FETCH	s0,		SP_BTN
-				AND		s4,		MSK_BTN_LEFT
-				COMPARE s4,		MSK_BTN_LEFT	;see if left button pressed
+				FETCH	s2,		SP_BTN
+				AND		s2,		MSK_BTN_LEFT
+				COMPARE s2,		MSK_BTN_LEFT	;see if left button pressed
 				JUMP	NZ,		chk_right_btn	;if not, check the right button
-				FETCH	s2,		SP_SPRITE_LOC
-				SUB		s2,		01					;x coordinate is 1 less now
-				STORE	s2, 	SP_SPRITE_LOC	; save value back
+				;FETCH	s2,		SP_SPRITE_LOC
+				;SUB		s2,		01					;x coordinate is 1 less now
+				;STORE	s2, 	SP_SPRITE_LOC	; save value back
+				FETCH	s3,		SP_GAME_INFO
+				LOAD 	s4,		FE				;moving left value is 10
+				AND		s3,		s4				;value to make LSB = 0
+				LOAD	s4,		02				;value to make 2nd bit = 1
+				OR		s3,		s4				;
+				STORE	s3,		SP_GAME_INFO
 				LOAD	s5,		E0				;output pattern for leds
 				OUTPUT	s5,		PA_LEDS
-				;OR VALUE WITH GAME_INFO REGISTER and output!
 				RETURN			
 
 				
 chk_right_btn:
 				FETCH	s0,		SP_BTN
-				AND		s3,		MSK_BTN_RIGHT
-				COMPARE s4,		MSK_BTN_RIGHT
-				FETCH	s2, 	SP_SPRITE_LOC
-				ADD		s2,		01			;x coordinate is 1 more now
-				STORE	s2, 	SP_SPRITE_LOC	; save value back
+				AND		s0,		MSK_BTN_RIGHT
+				COMPARE s0,		MSK_BTN_RIGHT
+				RETURN	NZ,						;if the right button isn't pressed, we're done (should never happen unless reset?)
+				;FETCH	s2, 	SP_SPRITE_LOC
+				;ADD		s2,		01			;x coordinate is 1 more now
+				;STORE	s2, 	SP_SPRITE_LOC	; save value back
+				FETCH	s3,		SP_GAME_INFO
+				LOAD 	s4,		FD				;moving right value is 01
+				AND		s3,		s4				;value to make 2nd bit = 0
+				LOAD	s4,		01				;value to make LSB = 1
+				OR		s3,		s4				;
+				STORE	s3,		SP_GAME_INFO
 				LOAD	s5,		07
 				OUTPUT	s5,		PA_LEDS
-				;OR VALUE WITH GAME_INFO REGISTER
 				RETURN	
 
 
@@ -766,43 +719,64 @@ chk_right_btn:
 ; ==================================================================================
 ; ============== Score keeping functions 	================
 ; ==================================================================================
+				;only displays 1st digit right now
+display_score:		;take score from stored value and put in Dig0,1,2,3... for all of these
+				FETCH	s2,		SP_CNT_0
+				LOAD	Dig0,	s2
+				FETCH	s2,		SP_CNT_1
+				LOAD	Dig1,	s2
+				FETCH	s2,		SP_CNT_2
+				LOAD	Dig2,	s2
+				FETCH	s2,		SP_CNT_3
+				LOAD	Dig3,	s2
+				RETURN
 
-display_score:
+update_score:
 				;calculate first digit
 				FETCH	s2, 	SP_CNT_0
 				ADD		s2,		01
-				LOAD	Dig0,	s2					
-				LOAD	s3,		Dig0				;s3 contains incremented value before mask, used for 2nd digit
-				AND		Dig0,	MSK_HEXDIGIT		;put output value in Dig0 register, 0-9
+				;LOAD	Dig0,	s2					
+				;LOAD	s3,		Dig0				;s3 contains incremented value before mask, used for 2nd digit
+				;AND		Dig0,	MSK_DECDIGIT		;put output value in Dig0 register, 0-9
+				AND		s2,		MSK_HEXDIGIT
+				;STORE	Dig0,	SP_CNT_0
+				LOAD	s3,		s2
 				STORE	s2,		SP_CNT_0
-				LOAD	s4,		10				;should work?
+				LOAD	s4,		10				;should work?				
 				COMPARE	s4,		s3				;make sure register value isn't gone
+								
 				JUMP	Z,		score1			;if we should increment next digit, call function
 				RETURN
 				
 score1:
-
+				LOAD	s5,		00
+				STORE	s5,		SP_CNT_0			;clear previous counter
 				FETCH	s2, 	SP_CNT_1		
 				ADD		s2,		01
-				LOAD	Dig1,	s2					
-				LOAD	s3,		Dig1				;s3 contains incremented value before mask, used for 2nd digit
-				AND		Dig1,	MSK_HEXDIGIT		;put output value in Dig0 register, 0-9
+				;LOAD	Dig1,	s2					
+				;LOAD	s3,		Dig1				;s3 contains incremented value before mask, used for 2nd digit
+				;AND		Dig1,	MSK_DECDIGIT		;put output value in Dig0 register, 0-9
+				;STORE	Dig1,	SP_CNT_1
+				AND		s2,		MSK_HEXDIGIT
 				STORE	s2,		SP_CNT_1
 				LOAD	s4,		10				;should work?
-				COMPARE	s4,		s3				;make sure register value isn't gone
+				COMPARE	s4,		s2				;make sure register value isn't gone
 				JUMP	Z,		score2			;if we should increment next digit, call function
 				RETURN
 
 score2:
-
+				LOAD	s5,		00
+				STORE	s5,		SP_CNT_1			;clear previous counter
 				FETCH	s2, 	SP_CNT_2		
 				ADD		s2,		01
-				LOAD	Dig2,	s2					
-				LOAD	s3,		Dig2				;s3 contains incremented value before mask, used for 2nd digit
-				AND		Dig2,	MSK_HEXDIGIT		;put output value in Dig0 register, 0-9
+				;LOAD	Dig2,	s2					
+				;LOAD	s3,		Dig2				;s3 contains incremented value before mask, used for 2nd digit
+				;AND		Dig2,	MSK_DECDIGIT		;put output value in Dig0 register, 0-9
+				;STORE	Dig2,	SP_CNT_2
+				AND		s2,		MSK_HEXDIGIT
 				STORE	s2,		SP_CNT_2
 				LOAD	s4,		10				;should work?
-				COMPARE	s4,		s3				;make sure register value isn't gone
+				COMPARE	s4,		s2				;make sure register value isn't gone
 				JUMP	Z,		score3			;if we should increment next digit, call function
 				RETURN
 				
@@ -810,12 +784,14 @@ score3:
 
 				FETCH	s2, 	SP_CNT_3		
 				ADD		s2,		01
-				LOAD	Dig3,	s2					
-				LOAD	s3,		Dig3				;s3 contains incremented value before mask, used for 2nd digit
-				AND		Dig3,	MSK_HEXDIGIT		;put output value in Dig0 register, 0-9
+				;LOAD	Dig3,	s2					
+				;LOAD	s3,		Dig3				;s3 contains incremented value before mask, used for 2nd digit
+				;AND		Dig3,	MSK_DECDIGIT		;put output value in Dig0 register, 0-9
+				;STORE	Dig3,	SP_CNT_3
+				AND		s2,		MSK_HEXDIGIT
 				STORE	s2,		SP_CNT_3
-				LOAD	s4,		10				;should work?
-				COMPARE	s4,		s3				;make sure register value isn't gone
+				LOAD	s4,		10				
+				COMPARE	s4,		s2				
 				JUMP	Z,		max_score
 				RETURN
 
@@ -829,8 +805,7 @@ max_score:
 			STORE	s2,		SP_CNT_0
 			STORE	s2,		SP_CNT_1
 			STORE	s2,		SP_CNT_2
-			STORE	s2,		SP_CNT_3
-			
+			STORE	s2,		SP_CNT_3		
 			RETURN
 			
 
@@ -838,13 +813,16 @@ max_score:
 ; ==================================================================================
 ; ============== If the switch is up, display different options 	================
 ; Pushbuttons now have different options:
-; Left/Right - Change Vehicle
+; Left/Right - Change Vehicle  (only left so far)
 ; Up - Change Background
 ; Change difficulty
 ; Change Number of tunnels.  Have 5 bits to work with
 ; ==================================================================================
 ;OUTPUT LEDS TO SAY WHICH LEVEL IT'S AT?
-chk_btns2:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
+
+
+
+display_opts:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
 				LOAD	s1,	s0						;copy and store value
 				STORE	s1,	SP_BTN2
 				CALL	chk_vehicle					; see if user wants to pause
@@ -852,26 +830,35 @@ chk_btns2:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
 				CALL	chk_level
 				RETURN								; if so, return to main
 		
-
 chk_vehicle:
 				FETCH	s0,		SP_BTN2
 				AND		s0,		MSK_BTN_LEFT				;mask with up button
-				COMPARE s3,		MSK_BTN_LEFT
+				COMPARE s0,		MSK_BTN_LEFT
 				RETURN NZ						;CALL OTHER CHECKS IF THIS ONE NOT PRESSED
 				FETCH	s2,		SP_NUM_VEH
 				ADD		s2,		01
+				LOAD	Dig1,	s2				;load index of vehicles to display
 				AND		s2,		MSK_NUM_VEH		; SHOULD BE 11, FOR 4 VEH TOTAL
-				;XOR WITH GAME_INFO
+	;NOT WORKING YET, NEED TO OR, AND WITH NUMBER SOMEHOW?  MUST BE A BETTER WAY
+				;FETCH	s3,		SP_GAME_INFO
+				;LOAD 	s4,		FE				;icon selection is bits [6:5]
+				;AND		s3,		s4				;value to make LSB = 0
+				;LOAD	s4,		02				;value to make 2nd bit = 1
+				;OR		s3,		s4				;
+				;STORE	s3,		SP_GAME_INFO
 				STORE	s2,		SP_NUM_VEH
+			
+				;TODO:  Create for right button
 				RETURN
 
 chk_background:
 				FETCH	s0,		SP_BTN2
 				AND		s0,		MSK_BTN_UP				;mask with up button
-				COMPARE s3,		MSK_BTN_UP
+				COMPARE s0,		MSK_BTN_UP
 				RETURN NZ						;CALL OTHER CHECKS IF THIS ONE NOT PRESSED
 				FETCH	s2,		SP_NUM_BKGRND
 				ADD		s2,		01
+				LOAD	Dig2,	s2
 				AND		s2,		MSK_NUM_BKGRND		; SHOULD BE 11, FOR 4 VEH TOTAL
 				;XOR WITH GAME_INFO
 				STORE	s2,		SP_NUM_BKGRND
@@ -880,10 +867,11 @@ chk_background:
 chk_level:		
 				FETCH	s0,		SP_BTN2
 				AND		s0,		MSK_BTN_DOWN				;mask with up button
-				COMPARE s3,		MSK_BTN_DOWN
+				COMPARE s0,		MSK_BTN_DOWN
 				RETURN NZ						;CALL OTHER CHECKS IF THIS ONE NOT PRESSED
 				FETCH	s2,		SP_NUM_LEV
 				ADD		s2,		01
+				LOAD	Dig0,	s2
 				AND		s2,		MSK_NUM_LEV		; SHOULD BE 11, FOR 4 VEH TOTAL
 				;XOR WITH GAME_INFO
 				STORE	s2,		SP_NUM_LEV
@@ -1042,7 +1030,8 @@ isr:			STORE	s6,		SP_TEMP1			; 	save s6, s5
 													;		// no - get the data from the rojobot emulator
 				INPUT	LocX,	PA_LOCX				;		get Rojobot X-coordinate 
 				INPUT	LocY,	PA_LOCY				;		get Rojobot Y-coordinate
-				INPUT	Botinf,	PA_BOTINFO			;		get Rojobot Movement and Orientation
+				;INPUT	Botinf,	PA_BOTINFO			;		get Rojobot Movement and Orientation
+				INPUT 	Colinf,	PA_COLLINFO
 				INPUT	Sensor,	PA_SENSORS			;		get Rojobot Sensors
 				INPUT	s5,		PA_LMDIST			;		get left and right motor distance counters
 				STORE	s5,		SP_LMDIST			;		not displayed in this program but let's stash them

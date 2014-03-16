@@ -133,7 +133,7 @@ end
 always @ (posedge clk)
 	begin
 		if(rst) begin
-			count = 26'b0;
+			count <= 26'b0;
 		end
 		else begin
 			if(count <= 50000000) begin

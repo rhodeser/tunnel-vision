@@ -212,7 +212,7 @@ wire	[9:0]			vid_col_shifted;
 		.clk(sysclk),
 		.rst(sysreset),
 		.game_info(game_info),
-		.game_status(game_status)
+		.game_status(game_status),
 //		.upd_sysregs(upd_sysregs),
 		.db_btns(db_btns[4:1]),
 		.db_sw(db_sw),
@@ -339,15 +339,19 @@ dtg dtg(
 .pixel_column(vid_col)
 );
 
+
 //INSTANTIATE MAP.v
+
+/*
 MAP map(
 	.clock(clk25),
 	.rst(sysrst),
 	.game_status(game_status)
 );
-
+*/
 
 // INSTANTIATE COLORIZE.V MODULE
+
 
 colorizer colorizer(
 .clock(clk25),
@@ -362,6 +366,7 @@ colorizer colorizer(
 );
 
 
+/*
 video_game_controller game_control(
 .clock(clk25),
 .rst(sysreset),
@@ -371,5 +376,5 @@ video_game_controller game_control(
 .icon(icon),
 .wall(wall)
 );
-		
+	*/	
 endmodule
