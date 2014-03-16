@@ -342,6 +342,7 @@ dtg dtg(
 
 // INSTANTIATE COLORIZE.V MODULE
 
+
 colorizer colorizer(
 .clock(clk25),
 .rst(sysreset),
@@ -355,6 +356,7 @@ colorizer colorizer(
 );
 
 
+
 video_game_controller game_control(
 .clock(clk25),
 .rst(sysreset),
@@ -366,5 +368,5 @@ video_game_controller game_control(
 .icon(icon),
 .wall(wall)
 );
-		
+	
 endmodule
