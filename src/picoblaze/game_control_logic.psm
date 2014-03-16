@@ -122,7 +122,7 @@ CONSTANT	MSK_SW0,		01		; Slide switch 0 is bit 0
 
 ;Values for masking port # to create correct game_info output
 CONSTANT	MSK_SPRITE,		03
-CONSTANT	MSK_GAME_STAT,	04
+CONSTANT	MSK_GAME_STAT,          80	
 CONSTANT	MSK_LEVEL,		18
 CONSTANT	MSK_ICON,		60
 CONSTANT	MSK_BKGRND,		80
@@ -317,9 +317,7 @@ main:			CALL	init_btnluptbl				; initialize button to MotCtl lookup table
 				LOAD	s1,		00
 				STORE	s1,		STATE
 				
-				;OTHERS to initialize...necessary?
 				LOAD	s1,		00
-				STORE	s1,		SP_SWITCH_VAL		; to see if we'll go to the switch
 				STORE	s1,		MSK_NUM_VEH
 				STORE	s1,		MSK_NUM_LEV	
 				STORE	s1,		MSK_NUM_BKGRND
@@ -689,7 +687,8 @@ chk_no_btn:
 				
 				FETCH	s2,		SP_BTN					;grab debounced values
 				AND		s2,		MSK_BTN_NONE	
-				COMPARE s2,		MSK_BTN_NONE			;check if any buttons pressed
+                                LOAD    s3,             00
+				COMPARE s2,		s3                    ;check if any buttons pressed
 				JUMP NZ, 	chk_down_btn				;if a button is pressed, check the next
 				;FETCH	s4,		STATE					;if not, check the state
 				;COMPARE	s4,		PAUSED_STATE			;if we're in the paused state
@@ -697,6 +696,7 @@ chk_no_btn:
 				LOAD	s3,		SP_GAME_INFO		;if we're still going, change game_info vehicle value
 				LOAD	s2,		FC				; value is 00, so mask to make last 2 LSB 00
 				AND		s3,		s2				;if not paused, make sure next vehicle movement is straight
+                                ;later - output 00 in LEDS 
 				OUTPUT	s3,		PA_LEDS				;displays the game_info register values
 				CALL active						;if no buttons are pressed but it's not paused, still update score and state
 				RETURN
@@ -728,6 +728,7 @@ chk_left_btn:
 				LOAD	s4,		02				;value to make 2nd bit = 1
 				OR		s3,		s4				;
 				STORE	s3,		SP_GAME_INFO
+                                STORE   s1,             SP_GA
 				LOAD	s5,		E0				;output pattern for leds
 				OUTPUT	s5,		PA_LEDS
 				RETURN			
@@ -757,7 +758,6 @@ chk_right_btn:
 ; ==================================================================================
 ; ============== Score keeping functions 	================
 ; ==================================================================================
-				;only displays 1st digit right now
 				
 display_score:		;take score from stored value and put in Dig0,1,2,3... for all of these
 				FETCH	s2,		SP_CNT_0
