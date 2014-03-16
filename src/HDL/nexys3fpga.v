@@ -96,7 +96,8 @@ module Nexys3fpga (
 //////////NEXYS3_BOT_IF/////////
 
 wire 	[7:0]		game_info;
-wire game_status;
+wire [7:0] randomized_value;
+wire collison_detect;
 //wire 				upd_sysregs;
 
 
@@ -110,8 +111,7 @@ wire				write_strobe;
 wire				read_strobe;
 wire				interrupt;
 wire				interrupt_ack;
-wire 	[7:0]		led;
-wire  [7:0]		random_value;
+//wire 	[7:0]		led;
 
 
 ////////////BOT.V///////////////
@@ -212,7 +212,8 @@ wire	[9:0]			vid_col_shifted;
 		.clk(sysclk),
 		.rst(sysreset),
 		.game_info(game_info),
-		.game_status(game_status),
+//		.game_status(game_status),
+		.collison_detect(collison_detect),
 //		.upd_sysregs(upd_sysregs),
 		.db_btns(db_btns[4:1]),
 		.db_sw(db_sw),
@@ -233,6 +234,12 @@ wire	[9:0]			vid_col_shifted;
 		.randomized_value(random_value)
 	);	
 	
+	// instantiate LSFR
+	lfsr lfsr_1(
+		.clk(sysclk),
+		.reset(sysreset),
+		.randomized_value(randomized_value)
+    );
 	
 	// INSTANTUATE KCPSM6 MODULE (CONTROLLER)
 	
@@ -266,14 +273,6 @@ wire	[9:0]			vid_col_shifted;
 
 );
 
-// INSTANTIATE THE LFSR
-	/*
-	lfsr lfsr(
-		.clk						(sysclk),
-		.reset					(sysreset),
-		.randomized_value		(random_value) 
-	);
-*/
 ////////////////////////PART II STARTS HERE//////////////
 
 
@@ -340,15 +339,6 @@ dtg dtg(
 );
 
 
-//INSTANTIATE MAP.v
-
-/*
-MAP map(
-	.clock(clk25),
-	.rst(sysrst),
-	.game_status(game_status)
-);
-*/
 
 // INSTANTIATE COLORIZE.V MODULE
 
@@ -366,15 +356,17 @@ colorizer colorizer(
 );
 
 
-/*
+
 video_game_controller game_control(
 .clock(clk25),
 .rst(sysreset),
 .game_info_reg(game_info),
+.collison_detect(collison_detect),
+.randomized_value(randomized_value),
 .Pixel_row(vid_row),
 .Pixel_column(vid_col),
 .icon(icon),
 .wall(wall)
 );
-	*/	
+	
 endmodule

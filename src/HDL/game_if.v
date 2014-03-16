@@ -39,7 +39,8 @@ module game_interface(
 	input		[3:0]		db_btns,
 	input		[7:0]		db_sw,
 	input		[1:0]		randomized_value,
-	input 					game_status,
+	//input 					game_status,
+	input collison_detect,
 	// LED OUT
 	
 	output reg [7:0]		led,
@@ -123,7 +124,7 @@ begin
 								in_port <= randomized_value; 						
 						 end	
 		8'h02			:begin
-								in_port <= game_status;
+								in_port <= collison_detect;
 						end									 
 	 endcase
 end
@@ -136,12 +137,15 @@ always @ (posedge clk)
 			count <= 26'b0;
 		end
 		else begin
-			if(count <= 50000000) begin
-				count <= count +1;
+			if (collison_detect) begin
+				interrupt <= 1'b1;
+			end
+			else if(count <= 50000000) begin
+					count <= count +1;
 			end
 			else begin
-				count <= 0;
-				interrupt <= 1'b1;
+					count <= 0;
+					interrupt <= 1'b1;
 			end
 		end
 	
@@ -153,9 +157,8 @@ always @ (posedge clk)
 			begin
 				interrupt <= 1'b0;
 			end
-			else
-			begin
-				if(count == 50000000)
+			else begin
+				if(count == 50000000 || collison_detect == 1)
 				begin
 					interrupt <= 1'b1;
 				end
