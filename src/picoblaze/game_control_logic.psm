@@ -747,7 +747,8 @@ chk_right_btn:
 				LOAD	s4,		01				;value to make LSB = 1
 				OR		s3,		s4				;
 				STORE	s3,		SP_GAME_INFO
-				LOAD	s5,		07
+				;LOAD	s5,		07
+                                LOAD    s5,             s3            ;output the game_info when turning right
 				OUTPUT	s5,		PA_LEDS
 				RETURN	
 
