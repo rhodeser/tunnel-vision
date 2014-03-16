@@ -132,9 +132,9 @@ CONSTANT	MSK_LEFT,		10
 
 ;values to index the number of options player can select
 CONSTANT	MSK_COLLISION,	01
-CONSTANT	MSK_NUM_VEH,	11
+CONSTANT	MSK_NUM_VEH,	03
 CONSTANT	MSK_NUM_LEV,	01
-CONSTANT	MSK_NUM_BKGRND,	11
+CONSTANT	MSK_NUM_BKGRND,	03
 
 CONSTANT	STATE,			28
 CONSTANT	SP_SCORE,		29
@@ -149,6 +149,7 @@ CONSTANT	SP_NUM_VEH,		40
 CONSTANT	SP_NUM_LEV,		41
 CONSTANT	SP_NUM_BKGRND,	42
 CONSTANT	SP_GAME_INFO,	43
+CONSTANT	SP_SWITCH_VAL,	44
 
 CONSTANT	PAUSED_STATE,	00
 CONSTANT	ACTIVE_STATE,	01
@@ -317,6 +318,8 @@ main:			CALL	init_btnluptbl				; initialize button to MotCtl lookup table
 				STORE	s1,		STATE
 				
 				;OTHERS to initialize...necessary?
+				LOAD	s1,		00
+				STORE	s1,		SP_SWITCH_VAL		; to see if we'll go to the switch
 				STORE	s1,		MSK_NUM_VEH
 				STORE	s1,		MSK_NUM_LEV	
 				STORE	s1,		MSK_NUM_BKGRND
@@ -337,8 +340,6 @@ main:			CALL	init_btnluptbl				; initialize button to MotCtl lookup table
 													;	while(1) {  // main loop is an infinite loop
 main_L0:		FETCH	s6,		SP_SEM				;		while (SP_SEMA == 0)  {}   // loop until isr updates rojobot registers
 				COMPARE	s6,		00					;
-		;		CALL	display_score				;remove these 2 later
-		;		CALL	wr_alldigits
 				JUMP	Z,		main_L0				;
 													; 
 				CALL	DEB_rdsw					;		s0 = switches
@@ -347,17 +348,40 @@ main_L0:		FETCH	s6,		SP_SEM				;		while (SP_SEMA == 0)  {}   // loop until isr u
 				
 				;if switch is on...? then display_opts and not score.  
 				;note - should be display opts, debugging now
-				CALL	display_score
-				;CALL	display_opts				;Doesn't currently display differences, will update game_info though
-				JUMP	main_L2						;
+				;CALL	display_score
+				
+				;The point of this block is to keep the game in a paused state initially.  The player should be able to 
+				;select options of vehicle and background.  when ready, changing the switch will start the game.
+				
+				;WHAT I NEED TO DO:  if switch == 1, start game.  If not, do the options/location changes stuff
+				;moved start_game to main_L1?  
+				FETCH	s2,		SP_SWITCH_VAL		;if we have switch == 0, which should mean options.
+				LOAD	s3,		00
+				COMPARE	s2,		s3
+				JUMP	NZ,		main_L1							;if we haven't started the game, ok to allow options
+				CALL	display_opts				;Doesn't currently display differences, will update game_info though
+				;if this doesn't work, remove these 5 lines and rename next_step to start game
+				CALL	wr_alldigits
+				CALL	DEB_rdbtns				;get debounced values
+				AND		s0,		MSK_BTN_DOWN				;mask with down button
+				COMPARE s0,		MSK_BTN_DOWN
+				JUMP	main_L2
+				
+				;CALL	Z, start_game
+				
+				;JUMP	main_L2						;
 													;		else {  // display movement and heading
-main_L1:		CALL	display_score				;			Dig[3] = next movement
-				;CALL	next_hdg					;			Dig[2:0] = next heading
+
+main_L1:		;FETCH	s2,		STATE
+				;COMPARE s2,		PAUSED_STATE
+				;JUMP 	Z,		main_L2				;if we're paused, don't display the score yet?
+				CALL	start_game
+				CALL	display_score				;			Dig[3] = next movement
 													;		}
 main_L2:		CALL	wr_alldigits				;		write all of the digits to the display
 				LOAD	s1,		Sensor				;		update LEDs with new sensor information
 				;CALL	LED_wrleds					;															;
-				CALL	next_step					;		tell rojobot what to do next
+				;CALL	start_game					;		moved to L1 for now
 				LOAD	s2,		SP_GAME_INFO
 				OUTPUT	s2,		PA_GAME_INFO		;PORT 9?
 				FETCH	s6,		SP_SEM
@@ -547,7 +571,7 @@ mvmt2cc:		LOAD	s2,		SP_MVMTBASE			; s2 gets base of movment conversion table
 ; === This version reads the pushbuttons, calculates the new Motor Control   ===
 ; === register value and then writes MotCtl so Rojobot knows what to do      ===  
 ; ==============================================================================
-next_step:		
+	
 	;=========================================================================
 ;;;;;;;	---------------------------		OLD STUFF	----------------------------
 ;				CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
@@ -555,7 +579,7 @@ next_step:
 ;				OUTPUT	s1,		PA_MOTCTL_IN		; tell Rojobot what to do
 ;				RETURN	
 ;;;;;;;=========================================================================
-				
+start_game:					
 				CALL	chk_collision				; First see if the game is over
 				RETURN								; If there was a collision, don't do any more
 
@@ -567,6 +591,7 @@ chk_btns:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
 				RETURN								; if so, return to main
 				
 ;TODO			
+				;Will no buttons reset game_info to not move vehicle previous direction?
 				;RESET logic doesn't work that well...?
 				;don't need to check switch 1 unless "paused" or really, at the beginning.  count have if counter = 0
 				;display_opts will just overwrite the Dig values? 
@@ -586,10 +611,19 @@ chk_btns:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
 				;CREATE OUTPUT 	GAME_INFO, ...? OR IN MAIN?
 				;Sprite: 00 = straight, 01 = right, 10 = left, 11 = ?  straight?
 				;game status:  0 = paused, 1 = active
+				
+				  
+				
+				;PROBLEMS:
+				; right btn not correctly decrementing output.  down goes b/w 1 and 2. left goes 2-1-0 ?. 
+				;starting state isn't PAUSED.  should clear 
+				;switch shouldn't start game, it should wait till user presses enter
 active:			
 				;manages functions when state is active
 				;updates state
 				;these need to modify game_info register as well
+				LOAD	s4,		01
+				STORE	s4,		SP_SWITCH_VAL		;once we're in an active state, we can't use switch
 				CALL	update_score
 				;CALL 	display_score
 				LOAD 	s3,		ACTIVE_STATE
@@ -639,6 +673,7 @@ chk_up_btn:
 				JUMP NZ, 	chk_no_btn					;go to next phase if no up button
 				LOAD 	s3,		PAUSED_STATE			;else pause and send out that register
 				STORE	s3,		STATE
+                                ;change game_info to deliver paused state
 				FETCH	s3,		SP_GAME_INFO
 				LOAD 	s4,		FB
 				AND		s3,		s4				;update status to be paused
@@ -656,12 +691,14 @@ chk_no_btn:
 				AND		s2,		MSK_BTN_NONE	
 				COMPARE s2,		MSK_BTN_NONE			;check if any buttons pressed
 				JUMP NZ, 	chk_down_btn				;if a button is pressed, check the next
-				FETCH	s4,		STATE					;if not, check the state
-				COMPARE	s4,		PAUSED_STATE			;if we're in the paused state
-				;LOAD	s3,		SP_GAME_INFO
-				;OUTPUT	s3,		PA_LEDS
-				RETURN	Z					;return and don't update anything since paused
-				CALL active					;if no buttons are pressed but it's not paused, still update score and state
+				;FETCH	s4,		STATE					;if not, check the state
+				;COMPARE	s4,		PAUSED_STATE			;if we're in the paused state
+				;RETURN	Z							;return and don't update anything since paused
+				LOAD	s3,		SP_GAME_INFO		;if we're still going, change game_info vehicle value
+				LOAD	s2,		FC				; value is 00, so mask to make last 2 LSB 00
+				AND		s3,		s2				;if not paused, make sure next vehicle movement is straight
+				OUTPUT	s3,		PA_LEDS				;displays the game_info register values
+				CALL active						;if no buttons are pressed but it's not paused, still update score and state
 				RETURN
 
 				
@@ -672,8 +709,8 @@ chk_down_btn:
 				AND		s2,		MSK_BTN_DOWN				;mask with down button
 				COMPARE s2,		MSK_BTN_DOWN				
 				JUMP NZ, 	chk_left_btn					;if not down button, go to next test
-				;LOAD	s5,		FF				;  Want to output values?  Should be none since resuming
-				;OUTPUT	s5,		PA_LEDS
+				LOAD	s5,		00				;  Want to output values?  Should be none since resuming
+				OUTPUT	s5,		PA_LEDS
 				RETURN
 
 
@@ -720,6 +757,7 @@ chk_right_btn:
 ; ============== Score keeping functions 	================
 ; ==================================================================================
 				;only displays 1st digit right now
+				
 display_score:		;take score from stored value and put in Dig0,1,2,3... for all of these
 				FETCH	s2,		SP_CNT_0
 				LOAD	Dig0,	s2
@@ -742,7 +780,7 @@ update_score:
 				;STORE	Dig0,	SP_CNT_0
 				LOAD	s3,		s2
 				STORE	s2,		SP_CNT_0
-				LOAD	s4,		10				;should work?				
+				LOAD	s4,		0A				;should work?				
 				COMPARE	s4,		s3				;make sure register value isn't gone
 								
 				JUMP	Z,		score1			;if we should increment next digit, call function
@@ -759,7 +797,7 @@ score1:
 				;STORE	Dig1,	SP_CNT_1
 				AND		s2,		MSK_HEXDIGIT
 				STORE	s2,		SP_CNT_1
-				LOAD	s4,		10				;should work?
+				LOAD	s4,		0A				;should work?
 				COMPARE	s4,		s2				;make sure register value isn't gone
 				JUMP	Z,		score2			;if we should increment next digit, call function
 				RETURN
@@ -775,13 +813,14 @@ score2:
 				;STORE	Dig2,	SP_CNT_2
 				AND		s2,		MSK_HEXDIGIT
 				STORE	s2,		SP_CNT_2
-				LOAD	s4,		10				;should work?
+				LOAD	s4,		0A				;should work?
 				COMPARE	s4,		s2				;make sure register value isn't gone
 				JUMP	Z,		score3			;if we should increment next digit, call function
 				RETURN
 				
 score3:
-
+				LOAD	s5,		00
+				STORE	s5,		SP_CNT_2			;clear previous counter
 				FETCH	s2, 	SP_CNT_3		
 				ADD		s2,		01
 				;LOAD	Dig3,	s2					
@@ -790,7 +829,7 @@ score3:
 				;STORE	Dig3,	SP_CNT_3
 				AND		s2,		MSK_HEXDIGIT
 				STORE	s2,		SP_CNT_3
-				LOAD	s4,		10				
+				LOAD	s4,		0A				
 				COMPARE	s4,		s2				
 				JUMP	Z,		max_score
 				RETURN
@@ -813,9 +852,9 @@ max_score:
 ; ==================================================================================
 ; ============== If the switch is up, display different options 	================
 ; Pushbuttons now have different options:
-; Left/Right - Change Vehicle  (only left so far)
-; Up - Change Background
-; Change difficulty
+; Left/Right - Change Vehicle, 4 options
+; Up - Change Background, 4 options
+; Change difficulty, 2 options
 ; Change Number of tunnels.  Have 5 bits to work with
 ; ==================================================================================
 ;OUTPUT LEDS TO SAY WHICH LEVEL IT'S AT?
@@ -825,20 +864,22 @@ max_score:
 display_opts:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
 				LOAD	s1,	s0						;copy and store value
 				STORE	s1,	SP_BTN2
-				CALL	chk_vehicle					; see if user wants to pause
+				CALL	chk_veh_left
+				CALL	chk_veh_right
 				CALL	chk_background
 				CALL	chk_level
-				RETURN								; if so, return to main
+				RETURN								
 		
-chk_vehicle:
+chk_veh_left:
 				FETCH	s0,		SP_BTN2
 				AND		s0,		MSK_BTN_LEFT				;mask with up button
 				COMPARE s0,		MSK_BTN_LEFT
 				RETURN NZ						;CALL OTHER CHECKS IF THIS ONE NOT PRESSED
 				FETCH	s2,		SP_NUM_VEH
-				ADD		s2,		01
+				SUB		s2,		01
+				AND		s2,		MSK_NUM_VEH
 				LOAD	Dig1,	s2				;load index of vehicles to display
-				AND		s2,		MSK_NUM_VEH		; SHOULD BE 11, FOR 4 VEH TOTAL
+						; SHOULD BE 4 VEH TOTAL
 	;NOT WORKING YET, NEED TO OR, AND WITH NUMBER SOMEHOW?  MUST BE A BETTER WAY
 				;FETCH	s3,		SP_GAME_INFO
 				;LOAD 	s4,		FE				;icon selection is bits [6:5]
@@ -847,10 +888,31 @@ chk_vehicle:
 				;OR		s3,		s4				;
 				;STORE	s3,		SP_GAME_INFO
 				STORE	s2,		SP_NUM_VEH
-			
-				;TODO:  Create for right button
+				RETURN
+chk_veh_right:				
+				;NOW check if the right button was hit and decrement if so
+				
+				FETCH	s0,		SP_BTN2
+				AND		s0,		MSK_BTN_RIGHT				;mask with up button
+				COMPARE s0,		MSK_BTN_RIGHT
+				RETURN NZ						;CALL OTHER CHECKS IF THIS ONE NOT PRESSED
+				FETCH	s2,		SP_NUM_VEH
+				ADD		s2,		01
+				AND		s2,		MSK_NUM_VEH
+				LOAD	Dig1,	s2				;load index of vehicles to display
+						; SHOULD BE 4 VEH TOTAL
+	;NOT WORKING YET, NEED TO OR, AND WITH NUMBER SOMEHOW?  MUST BE A BETTER WAY
+				;FETCH	s3,		SP_GAME_INFO
+				;LOAD 	s4,		FE				;icon selection is bits [6:5]
+				;AND		s3,		s4				;value to make LSB = 0
+				;LOAD	s4,		02				;value to make 2nd bit = 1
+				;OR		s3,		s4				;
+				;STORE	s3,		SP_GAME_INFO
+				STORE	s2,		SP_NUM_VEH			
 				RETURN
 
+
+				
 chk_background:
 				FETCH	s0,		SP_BTN2
 				AND		s0,		MSK_BTN_UP				;mask with up button
@@ -858,8 +920,9 @@ chk_background:
 				RETURN NZ						;CALL OTHER CHECKS IF THIS ONE NOT PRESSED
 				FETCH	s2,		SP_NUM_BKGRND
 				ADD		s2,		01
+				AND		s2,		MSK_NUM_BKGRND
 				LOAD	Dig2,	s2
-				AND		s2,		MSK_NUM_BKGRND		; SHOULD BE 11, FOR 4 VEH TOTAL
+						; SHOULD BE 4 backgrounds
 				;XOR WITH GAME_INFO
 				STORE	s2,		SP_NUM_BKGRND
 				RETURN
@@ -871,8 +934,9 @@ chk_level:
 				RETURN NZ						;CALL OTHER CHECKS IF THIS ONE NOT PRESSED
 				FETCH	s2,		SP_NUM_LEV
 				ADD		s2,		01
+				AND		s2,		MSK_NUM_LEV
 				LOAD	Dig0,	s2
-				AND		s2,		MSK_NUM_LEV		; SHOULD BE 11, FOR 4 VEH TOTAL
+						; SHOULD BE 2 LEVELS
 				;XOR WITH GAME_INFO
 				STORE	s2,		SP_NUM_LEV
 				RETURN
