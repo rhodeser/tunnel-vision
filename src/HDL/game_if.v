@@ -36,7 +36,7 @@ module game_interface(
 	
 	// DEBOUNCE.V CONNECTIONS
 	
-	input		[3:0]		db_btns,
+	input		[4:1]		db_btns,
 	input		[7:0]		db_sw,
 	input		[1:0]		randomized_value,
 	//input 					game_status,
@@ -63,6 +63,7 @@ module game_interface(
     );
 	 
 reg [25:0] count;
+//reg collison_detect_f;
 
 always @(posedge clk)
 begin
@@ -114,7 +115,7 @@ begin
 
 	case(port_id)	
 		8'h00			:begin
-								in_port <= db_btns; 						
+								in_port <= {db_btns[4],db_btns[3],db_btns[2],db_btns[1]}; 						
 						 end	
 
 		8'h01			:begin
@@ -135,17 +136,15 @@ always @ (posedge clk)
 	begin
 		if(rst) begin
 			count <= 26'b0;
+//			collison_detect_f <= 1'd0;
 		end
 		else begin
-			if (collison_detect) begin
-				interrupt <= 1'b1;
-			end
-			else if(count <= 50000000) begin
+//			collison_detect_f <= collison_detect;
+			if(count <= 10000000) begin
 					count <= count +1;
 			end
 			else begin
 					count <= 0;
-					interrupt <= 1'b1;
 			end
 		end
 	
@@ -158,7 +157,8 @@ always @ (posedge clk)
 				interrupt <= 1'b0;
 			end
 			else begin
-				if(count == 50000000 || collison_detect == 1)
+//				if(count == 10000000 || (collison_detect^collison_detect_f))
+				if(count == 10000000 || collison_detect==1 )
 				begin
 					interrupt <= 1'b1;
 				end

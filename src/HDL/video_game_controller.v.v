@@ -59,6 +59,7 @@ reg l_extreme_reached;
 reg r_extreme_reached;
 reg width_smple;
 //reg collison_detect;
+//reg test;
 reg [1:0] icon_actual;
 
 always @(posedge clock) begin
@@ -118,7 +119,11 @@ always @ (posedge clock) begin
 			else if(game_info_reg[1:0] == 2'b01) begin // move right
 				locX <= locX + 10'd1;
 			end
+/*			else if(game_info_reg[1:0] == 2'b11) begin // move right
+				test <= 1;
+			end */
 			else begin // no change
+			//	test <= 1;
 				locX <= locX;
 			end
 		end
@@ -220,6 +225,6 @@ end
 
 /////HERE DISPLAY -- Score/Game Ended
 assign icon = collison_detect ? Pixel_row[1:0] : icon_actual;
-//assign icon = icon_actual;
+//assign icon = test ? Pixel_row[1:0] : icon_actual;
 
 endmodule
