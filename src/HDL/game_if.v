@@ -36,7 +36,7 @@ module game_interface(
 	
 	// DEBOUNCE.V CONNECTIONS
 	
-	input		[3:0]		db_btns,
+	input		[4:1]		db_btns,
 	input		[7:0]		db_sw,
 	input		[1:0]		randomized_value,
 	//input 					game_status,
@@ -115,7 +115,7 @@ begin
 
 	case(port_id)	
 		8'h00			:begin
-								in_port <= db_btns; 						
+								in_port <= {db_btns[4],db_btns[3],db_btns[2],db_btns[1]}; 						
 						 end	
 
 		8'h01			:begin
