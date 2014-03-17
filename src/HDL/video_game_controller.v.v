@@ -47,8 +47,13 @@ output wire [1:0] icon
 );
 
 reg [1:0] bitmap_bot_1 [0:5] [0:5];	// normal image bitmap
+reg [1:0] bitmap_bot_2 [0:5] [0:5];	// normal image bitmap
+reg [1:0] bitmap_bot_3 [0:5] [0:5];	// normal image bitmap
+reg [1:0] bitmap_bot_4 [0:5] [0:5];	// normal image bitmap
 
-integer i,j;
+reg [1:0] bitmap_tree [0:9] [0:9];	// normal image bitmap
+
+integer i,j,p,q;
 reg [9:0] k,k_r;
 reg [7:0]cnt;
 reg [9:0] locX,locY,WallY, wally_left, wally_right, wally_left_prev, wally_right_prev;
@@ -58,6 +63,7 @@ reg [7:0] randomized_value_f;
 reg l_extreme_reached;
 reg r_extreme_reached;
 reg width_smple;
+reg game_completed;
 //reg collison_detect;
 //reg test;
 reg [1:0] icon_actual;
@@ -99,10 +105,54 @@ end
 always @(*) begin
 	for (i=0; i<=5; i=i+1) begin
 		for (j=0; j<=5; j=j+1) begin
-		    //square box
-			   bitmap_bot_1[i][j] = 2'b11;
+		   //square box
+			 bitmap_bot_1[i][j] = 2'b11;
+			//triangle
+			if(i == 0 && (j==4) )
+				bitmap_bot_2[i][j] = 2'b11;
+			else if(i == 1 && j==3)
+				bitmap_bot_2[i][j] = 2'b11;			
+			else if(i == 2 && (j == 2 || j ==1))
+				bitmap_bot_2[i][j] = 2'b11;	
+			else if(i ==3 && (j == 2 || j == 1))
+				bitmap_bot_2[i][j] = 2'b11;			
+			else if(i == 4 && (j == 3))
+				bitmap_bot_2[i][j] = 2'b11;			
+			else if(i == 5 && j == 4)
+				bitmap_bot_2[i][j] = 2'b11;			
+			else
+				bitmap_bot_2[i][j] = 2'b00;
+				
+			//Bot
+			if(i == 0 && (j==3) )
+				bitmap_bot_3[i][j] = 2'b11;
+			else if(i == 1 && (j==2 || j==3 || j==4 || j==5))
+				bitmap_bot_3[i][j] = 2'b11;			
+			else if(i == 2 && (j==0|| j==1 || j==2 || j==3))
+				bitmap_bot_3[i][j] = 2'b11;	
+			else if(i ==3 && (j==0|| j==1 || j==2 || j==3))
+				bitmap_bot_3[i][j] = 2'b11;			
+			else if(i == 4 && (j==2 || j==3 || j==4 || j==5))
+				bitmap_bot_3[i][j] = 2'b11;			
+			else if(i == 5 &&(j==3))
+				bitmap_bot_3[i][j] = 2'b11;			
+			else
+				bitmap_bot_3[i][j] = 2'b00;
+				
+			//Hammer
+			if(i == 1 && (j==0 || j==1 || j==2))
+				bitmap_bot_4[i][j] = 2'b11;			
+			else if(i == 2 )
+				bitmap_bot_4[i][j] = 2'b11;	
+			else if(i ==3)
+				bitmap_bot_4[i][j] = 2'b11;			
+			else if(i == 4 && (j==0 || j==1 || j==2))
+				bitmap_bot_4[i][j] = 2'b11;						
+			else
+				bitmap_bot_4[i][j] = 2'b00;			
+				
 		end
-	end
+	end	
 end
 
 always @ (posedge clock) begin
@@ -128,9 +178,57 @@ always @ (posedge clock) begin
 			end
 		end
 			
-		if ((Pixel_row >= locY) && (Pixel_row <= (locY + 3'h6)) && (Pixel_column >= locX) && (Pixel_column <= (locX + 4'h6)) ) begin
+		if ((Pixel_row >= locY) && (Pixel_row <= (locY + 3'h5)) && (Pixel_column >= locX) && (Pixel_column <= (locX + 4'h5)) ) begin
 			//condition to know whether pixel address matches with that of bot location
-			icon_actual <= bitmap_bot_1 [Pixel_row - locY] [Pixel_column - locX];	
+			case (game_info_reg[6:5])
+				2'b00 : begin 
+					if(bitmap_bot_1[5 - Pixel_column + locX][Pixel_row - locY] == 2'b11) begin
+						if(randomized_value[2] == 1)
+							icon_actual <= 2'b01;
+						else 
+							icon_actual <= 2'b11;
+					end
+					else begin
+						icon_actual <= bitmap_bot_1 [5 - Pixel_column + locX][Pixel_row - locY] ;	
+					end	
+				end
+				2'b11 : begin 
+					if(bitmap_bot_2[5 - Pixel_column + locX][Pixel_row - locY] == 2'b11) begin
+						if(randomized_value[2] == 1)
+							icon_actual <= 2'b01;
+						else 
+							icon_actual <= 2'b11;
+					end
+					else begin
+						icon_actual <= bitmap_bot_2 [5 - Pixel_column + locX][Pixel_row - locY] ;	
+					end	
+				end
+				2'b10 : begin 
+					if(bitmap_bot_3[5 - Pixel_column + locX][Pixel_row - locY] == 2'b11) begin
+						if(randomized_value[2] == 1)
+							icon_actual <= 2'b01;
+						else 
+							icon_actual <= 2'b11;
+					end
+					else begin
+						icon_actual <= bitmap_bot_3 [5 - Pixel_column + locX][Pixel_row - locY] ;	
+					end	
+				end
+				2'b11 : begin 
+					if(bitmap_bot_4[5 - Pixel_column + locX][Pixel_row - locY] == 2'b11) begin
+						if(randomized_value[2] == 1)
+							icon_actual <= 2'b01;
+						else 
+							icon_actual <= 2'b11;
+					end
+					else begin
+						icon_actual <= bitmap_bot_4[5 - Pixel_column + locX][Pixel_row - locY] ;	
+					end	
+				end				
+				//2'b01 : icon_actual <= bitmap_bot_2 [5 - Pixel_column + locX][Pixel_row - locY] ;	
+				//2'b10 : icon_actual <= bitmap_bot_3 [5 - Pixel_column + locX][Pixel_row - locY] ;	
+				//2'b11 : icon_actual <= bitmap_bot_4 [5 - Pixel_column + locX][Pixel_row - locY] ;	
+			endcase	
 		end
 		else begin
 			icon_actual <= 2'b00; // transparent
@@ -186,8 +284,12 @@ always @ (posedge clock) begin
 					wall <= 2'b11;
 				end	
 			end	
-			else begin
-				wall <= 2'b00; // transparent
+			else begin				
+				if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 15+cnt) && (Pixel_column >= 10) && (Pixel_column <= 15) ) begin
+					wall <= 2'b11;
+				end
+				else
+					wall <= 2'b00; // transparent
 			end
 		end
 		else begin
@@ -200,13 +302,24 @@ always @ (posedge clock) begin
 				end	
 			end	
 			else begin
-				wall <= 2'b00; // transparent
+				if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 15+cnt) && (Pixel_column >= 10) && (Pixel_column <= 15) ) begin
+					wall <= 2'b11;
+				end
+				else
+					wall <= 2'b00; // transparent
 			end		
 		end	
 		
-		if(Pixel_column == 10'd0 && Pixel_row[9:2] == 8'd0) begin
-			cnt <= cnt + 1'd1;
-		end	
+		if(game_info_reg[4] == 1) begin //Increase game speed
+			if(Pixel_column == 10'd0 && Pixel_row[9:3] == 7'd0) begin
+				cnt <= cnt + 1'd1;
+			end			
+		end
+		else begin
+			if(Pixel_column == 10'd0 && Pixel_row[9:2] == 8'd0) begin
+				cnt <= cnt + 1'd1;
+			end	
+		end
 	end	
 end
 
@@ -223,8 +336,46 @@ always @ (posedge clock) begin
 	end
 end	
 
-/////HERE DISPLAY -- Score/Game Ended
-assign icon = collison_detect ? Pixel_row[1:0] : icon_actual;
-//assign icon = test ? Pixel_row[1:0] : icon_actual;
+/////Game completed -- '1' in game status means stop displaying icon
+always @ (posedge clock) begin
+	if(rst) begin
+		game_completed <= 1'd0;
+	end
+	else begin
+		game_completed <= game_info_reg[7];
+	end
+end	
 
+assign icon = game_completed ? Pixel_row[1:0] : icon_actual;
+
+
+//TREE
+always @(*) begin
+	for (p=0; p<=9; p=p+1) begin
+		for (q=0; q<=9; q=q+1) begin
+			if(p==0 && (q==5 || q==6))
+				bitmap_tree[p][q] = 2'b11;
+			else if(p==1 && (q==5 | q==6 | q==7 | q==8 ))
+				bitmap_tree[p][q] = 2'b11;			
+			else if(p==2 && (q==5 | q==6 | q==7 | q==8 ))
+				bitmap_tree[p][q] = 2'b11;			
+			else if(p==3 && (q != 4))
+				bitmap_tree[p][q] = 2'b11;			
+			else if(p==4)
+				bitmap_tree[p][q] = 2'b11;			
+			else if(p==5)
+				bitmap_tree[p][q] = 2'b11;			
+			else if(p==6 && (q!=4 ))
+				bitmap_tree[p][q] = 2'b11;			
+			else if(p==7 && (q==5 | q==6 | q==7))
+				bitmap_tree[p][q] = 2'b11;			
+			else if(p==8 && (q==5 | q==6 | q==7 ))
+				bitmap_tree[p][q] = 2'b11;			
+			else if(p==9 && (q==5 | q==6))
+				bitmap_tree[p][q] = 2'b11;			
+			else
+				bitmap_tree[p][q] = 2'b00;				
+		end
+	end
+end	
 endmodule
