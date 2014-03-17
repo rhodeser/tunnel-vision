@@ -370,9 +370,9 @@ main_L0:		FETCH	s6,		SP_SEM				;		while (SP_SEMA == 0)  {}   // loop until isr u
 				JUMP	main_L2						;
 													;		else {  // display movement and heading
 
-main_L1:		;FETCH	s2,		STATE
-				;COMPARE s2,		PAUSED_STATE
-				;JUMP 	Z,		main_L2				;if we're paused, don't display the score yet?
+main_L1:		FETCH	s2,		STATE
+				COMPARE s2,		PAUSED_STATE
+				JUMP 	Z,		main_L2				;if we're paused, don't display the score yet?
 				CALL	start_game
 				CALL	display_score				;			Dig[3] = next movement
 													;		}
@@ -667,7 +667,7 @@ chk_up_btn:
 				STORE	s3,		STATE
                                 ;change game_info to deliver paused state
 				FETCH	s3,		SP_GAME_INFO
-				LOAD 	s4,		FB
+				LOAD 	s4,	        7F        ; value that puts 0 in game_info register, since we're paused	
 				AND		s3,		s4				;update status to be paused
 				STORE	s3,		SP_GAME_INFO
 				LOAD	s5,		FF				;output pattern for leds
