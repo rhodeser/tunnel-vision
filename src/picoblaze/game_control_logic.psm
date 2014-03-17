@@ -363,21 +363,17 @@ main_L0:		FETCH	s6,		SP_SEM				;		while (SP_SEMA == 0)  {}   // loop until isr u
 				CALL	DEB_rdbtns				;get debounced values
 				AND		s0,		MSK_BTN_DOWN				;mask with down button
 				COMPARE s0,		MSK_BTN_DOWN
-				JUMP	main_L2
+				JUMP    Z,	main_L2         ;if the down button is pressed, start the game. if not, jump past it and display values
 				
-				;CALL	Z, start_game
+				CALL	start_game
 				
-				;JUMP	main_L2						;
+				JUMP	main_L2						;
 													;		else {  // display movement and heading
 
 main_L1:		;FETCH	s2,		STATE
 				;COMPARE s2,		PAUSED_STATE
 				;JUMP 	Z,		main_L2				;if we're paused, don't display the score yet?
 				CALL	start_game
-                                LOAD    s2,       FC    ;clear game_info
-                                FETCH   s3,       SP_GAME_INFO
-                                AND     s3,       s2                ;mask sprite bits off for now
-                                STORE   s3,       SP_GAME_INFO
 				CALL	display_score				;			Dig[3] = next movement
 													;		}
 main_L2:		CALL	wr_alldigits				;		write all of the digits to the display
@@ -385,7 +381,11 @@ main_L2:		CALL	wr_alldigits				;		write all of the digits to the display
 				;CALL	LED_wrleds					;															;
 				;CALL	start_game					;		moved to L1 for now
 				LOAD	s2,		SP_GAME_INFO
-				;OUTPUT	s2,		PA_GAME_INFO		;PORT 9?
+				OUTPUT	s2,		PA_GAME_INFO		;PORT 9?
+                                LOAD    s2,       FC    ;clear game_info
+                                FETCH   s3,       SP_GAME_INFO
+                                AND     s3,       s2                ;mask sprite bits off for now
+                                STORE   s3,       SP_GAME_INFO
 				FETCH	s6,		SP_SEM
 				SUB		s6,		01					;		decrement semaphore
 				STORE	s6,		SP_SEM				;
@@ -751,7 +751,7 @@ chk_right_btn:
 				LOAD	s4,		01				;value to make LSB = 1
 				OR		s3,		s4				;
 				STORE	s3,		SP_GAME_INFO
-                                OUTPUT  s3,         PA_GAME_INFO
+                                ;OUTPUT  s3,         PA_GAME_INFO
 				;LOAD	s5,		07
                                 LOAD    s5,             s3            ;output the game_info when turning right
 				OUTPUT	s5,		PA_LEDS
