@@ -342,7 +342,8 @@ always @ (posedge clock) begin
 		game_completed <= 1'd0;
 	end
 	else begin
-		game_completed <= game_info_reg[7];
+		//game_completed <= game_info_reg[7];
+		game_completed <= collison_detect;
 	end
 end	
 
