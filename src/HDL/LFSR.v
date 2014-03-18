@@ -33,7 +33,7 @@ always @(posedge clk or posedge reset)
 begin
 if (reset==1)
 	begin
-		q <= 4'hf;
+		q <= 8'hf;
 		randomized_value <= q;
 		//randomized_value <= 4'hf;
 	end
