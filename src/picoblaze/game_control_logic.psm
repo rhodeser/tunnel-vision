@@ -370,9 +370,9 @@ main_L0:		FETCH	s6,		SP_SEM				;		while (SP_SEMA == 0)  {}   // loop until isr u
 				JUMP	main_L2						;
 													;		else {  // display movement and heading
 
-main_L1:		;FETCH	s2,		STATE
-				;COMPARE s2,		PAUSED_STATE
-				;JUMP 	Z,		main_L2				;if we're paused, don't display the score yet?
+main_L1:		FETCH	s2,		STATE
+				COMPARE s2,		PAUSED_STATE
+				JUMP 	Z,		main_L2				;if we're paused, don't display the score yet?
 				CALL	start_game
 				CALL	display_score				;			Dig[3] = next movement
 													;		}
@@ -601,23 +601,13 @@ chk_btns:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
 				;update main so doesn't output old stuff but outputs new stuff, and goes based off switch
 				;is 09 correct port for PA_GAME_INF0?
 				;create sys_update interface to interrupt and load GameStatus value 
-				;MAKE SURE REGISTERS AREN'T GETTING CLOBBERED
 				;updating game_info, do offset of base register ?
-				;WHAT HAPPENS IF GAME OVER AND PRESS RESUME?
 				;OUTPUT GAME_INFO REGISTER AT THE END? 
 				;write a function to change game_info bits
-				;write function to output game_info
-				;possibly put in main
 				;should store all outputs in SP, then call function to output all in main (like wr_alldigits).
-				;or if 1, and with converse if 0.  any shortcuts here?
-				;CREATE OUTPUT 	GAME_INFO, ...? OR IN MAIN?
-				;Sprite: 00 = straight, 01 = right, 10 = left, 11 = ?  straight?
 				;game status:  0 = paused, 1 = active
 				
-				  
-				
 				;PROBLEMS:
-				; right btn not correctly decrementing output.  down goes b/w 1 and 2. left goes 2-1-0 ?. 
 				;starting state isn't PAUSED.  should clear 
 				;switch shouldn't start game, it should wait till user presses enter
 active:			
@@ -677,7 +667,7 @@ chk_up_btn:
 				STORE	s3,		STATE
                                 ;change game_info to deliver paused state
 				FETCH	s3,		SP_GAME_INFO
-				LOAD 	s4,		FB
+				LOAD 	s4,	        7F        ; value that puts 0 in game_info register, since we're paused	
 				AND		s3,		s4				;update status to be paused
 				STORE	s3,		SP_GAME_INFO
 				LOAD	s5,		FF				;output pattern for leds
@@ -694,9 +684,9 @@ chk_no_btn:
                                 LOAD    s3,             00
 				COMPARE s2,		s3                    ;check if any buttons pressed
 				JUMP NZ, 	chk_down_btn				;if a button is pressed, check the next
-				;FETCH	s4,		STATE					;if not, check the state
-				;COMPARE	s4,		PAUSED_STATE			;if we're in the paused state
-				;RETURN	Z							;return and don't update anything since paused
+				FETCH	s4,		STATE					;if not, check the state
+				COMPARE	s4,		PAUSED_STATE			;if we're in the paused state
+				RETURN	Z							;return and don't update anything since paused
 				LOAD	s3,		SP_GAME_INFO		;if we're still going, change game_info vehicle value
 				LOAD	s2,		FC				; if 0 btns, no veh movement, is 00, so mask to make last 2 LSB 00
 				AND		s3,		s2				;if not paused, make sure next vehicle movement is straight
@@ -1036,7 +1026,7 @@ LED_wrleds:		LOAD	s0,		s1					; Copy LEDs to s0 to preserve them
 ; Registers used s0, s1, s2, s3
 ;---------------------
 SS_wrdigx:		COMPARE	s2,		04					; check if the digit number is in range
-				RETURN	NC							; C=0 says s1 >= 04 - out of range so return
+                              RETURN	NC							; C=0 says s1 >= 04 - out of range so return
 				LOAD	s0,		PA_DIG0				; calculate port address by starting with port address for digit 0
 				SUB		s0,		s2					; next subtract out the digit number.  This will give the port address
 													; for the selected digit.  Cool - it works because the port
