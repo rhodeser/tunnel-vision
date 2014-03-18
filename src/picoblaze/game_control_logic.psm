@@ -122,7 +122,7 @@ CONSTANT	MSK_SW0,		01		; Slide switch 0 is bit 0
 
 ;Values for masking port # to create correct game_info output
 CONSTANT	MSK_SPRITE,		03
-CONSTANT	MSK_GAME_STAT,          80	
+CONSTANT	MSK_GAME_STAT,          10	
 CONSTANT	MSK_LEVEL,		18
 CONSTANT	MSK_ICON,		60
 CONSTANT	MSK_BKGRND,		80
@@ -642,7 +642,7 @@ active:
 				;LOAD	s0,		00
 				;OUTPUT	s0,		PA_LEDS				;clear bits? probably not needed
 				FETCH	s3,		SP_GAME_INFO
-				LOAD 	s4,		MSK_GAME_STAT
+				LOAD 	s4,		80
 				OR		s3,		s4				;update status to be active
 				STORE	s3,		SP_GAME_INFO
 				RETURN
@@ -713,17 +713,25 @@ chk_no_btn:
 				
 chk_down_btn:
 ;check if player wants to resume (if game is active and is pressed, nothing will change)
-				CALL active					;we can also call active for everyone here since we know we're moving
+									;we can also call active for everyone here since we know we're moving
 				FETCH	s2,		SP_BTN				;get debounced values
 				AND		s2,		MSK_BTN_DOWN				;mask with down button
 				COMPARE s2,		MSK_BTN_DOWN				
 				JUMP NZ, 	chk_left_btn					;if not down button, go to next test
+				CALL active
 				LOAD	s5,		00				;  Want to output values?  Should be none since resuming
 				OUTPUT	s5,		PA_LEDS
 				RETURN
 
 
 chk_left_btn:
+				;FETCH	s2,		SP_GAME_INFO	;check if we're paused - if so, skip the right and left button checking
+				;AND		s2,		MSK_GAME_STAT	
+				;COMPARE	s2,		MSK_GAME_STAT	;compare 1 with state.  if they are both 1, there's no difference, we're active, keep going
+				FETCH	s2,		STATE
+				COMPARE	s2,		ACTIVE_STATE
+				RETURN	NZ
+				CALL	active
 				FETCH	s2,		SP_BTN
 				AND		s2,		MSK_BTN_LEFT
 				COMPARE s2,		MSK_BTN_LEFT	;see if left button pressed
@@ -743,6 +751,13 @@ chk_left_btn:
 
 				
 chk_right_btn:
+				;FETCH	s2,		SP_GAME_INFO	;check if we're paused - if so, skip the right and left button checking
+				;AND		s2,		MSK_GAME_STAT		
+				;COMPARE	s2,		MSK_GAME_STAT
+				;RETURN	NZ
+				FETCH	s2,		STATE
+				COMPARE	s2,		ACTIVE_STATE
+				RETURN	NZ
 				FETCH	s0,		SP_BTN
 				AND		s0,		MSK_BTN_RIGHT
 				COMPARE s0,		MSK_BTN_RIGHT
@@ -758,7 +773,7 @@ chk_right_btn:
 				STORE	s3,		SP_GAME_INFO
                                 ;OUTPUT  s3,         PA_GAME_INFO
 				LOAD	s5,		07
-                                ;LOAD    s5,             s3            ;output the game_info when turning right
+                ;                LOAD    s5,             s3            ;output the game_info when turning right
 				OUTPUT	s5,		PA_LEDS
 				RETURN	
 
