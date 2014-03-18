@@ -63,6 +63,7 @@ module game_interface(
     );
 	 
 reg [25:0] count;
+reg flag;
 //reg collison_detect_f;
 
 always @(posedge clk)
@@ -136,18 +137,32 @@ always @ (posedge clk)
 	begin
 		if(rst) begin
 			count <= 26'b0;
+			flag <= 1'b0;
 //			collison_detect_f <= 1'd0;
 		end
 		else begin
 //			collison_detect_f <= collison_detect;
-			if(count <= 10000000) begin
-					count <= count +1;
+			if (game_info[4] == 1'b0) begin 			//check level, speed up interrupt (meaning score)
+				flag <= 1'b0;
+				if(count <= 10000000) begin
+						count <= count +1;
+						
+				end
+				else begin
+						count <= 0;
+				end
 			end
-			else begin
-					count <= 0;
+		
+		else begin
+			flag <= 1'b1;
+			if(count <= 4000000) begin
+						count <= count +1;
+				end
+				else begin
+						count <= 0;
+				end
 			end
-		end
-	
+			end
 		if (rst) begin
 			interrupt <= 1'b0;
 		end
@@ -158,9 +173,17 @@ always @ (posedge clk)
 			end
 			else begin
 //				if(count == 10000000 || (collison_detect^collison_detect_f))
-				if(count == 10000000 || collison_detect==1 )
-				begin
+				if (flag == 1'b0) begin
+					if(count == 10000000 || collison_detect==1 )
+					begin
+						interrupt <= 1'b1;
+					end
+				end
+				if (flag == 1'b1) begin
+					if(count == 4000000 || collison_detect==1 )
+					begin
 					interrupt <= 1'b1;
+					end
 				end
 			end
 		end		
