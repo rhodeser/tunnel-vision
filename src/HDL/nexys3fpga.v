@@ -360,7 +360,11 @@ colorizer colorizer(
 video_game_controller game_control(
 .clock(clk25),
 .rst(sysreset),
+.db_sw(db_sw),
+.start(db_btns[1]),
+.pause(db_btns[3]),
 .game_info_reg(game_info),
+.bot_ctrl({db_btns[4],db_btns[2]}),
 .collison_detect(collison_detect),
 .randomized_value(randomized_value),
 .Pixel_row(vid_row),
