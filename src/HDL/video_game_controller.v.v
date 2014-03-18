@@ -280,7 +280,7 @@ always @ (posedge clock) begin
 		end	
 	end
 	else begin
-		if(Pixel_row == 10'b0 && Pixel_column == 10'b0 && cnt[3:0] == 0) begin
+		if(Pixel_row == 10'b0 && Pixel_column == 10'b0 && cnt[2:0] == 0) begin
 			if(bot_ctrl[1:0] == 2'b10) begin // move left
 				locX <= locX - 10'd1;
 			end

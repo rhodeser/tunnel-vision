@@ -327,10 +327,15 @@ main_L0:		FETCH	s6,		SP_SEM				;		while (SP_SEMA == 0)  {}   // loop until isr u
 				TEST	s0,		MSK_SW0				;		if (sw[0] == 0)   // display the Rojobot location
 				JUMP	NZ,		main_L1				; -- Z = 0 says switch is 'on'
 				
+				;if switch is on...? then display_opts and not score.  
+				;note - should be display opts, debugging now
+				;CALL	display_score
 				
 				;The point of this block is to keep the game in a paused state initially.  The player should be able to 
 				;select options of vehicle and background.  when ready, changing the switch will start the game.
-				 
+				
+				;WHAT I NEED TO DO:  if switch == 1, start game.  If not, do the options/location changes stuff
+				;moved start_game to main_L1?  
 				FETCH	s2,		SP_SWITCH_VAL		;if we have switch == 0, which should mean options.
 				LOAD	s3,		00
 				COMPARE	s2,		s3
@@ -348,7 +353,9 @@ main_L0:		FETCH	s6,		SP_SEM				;		while (SP_SEMA == 0)  {}   // loop until isr u
 				JUMP	main_L2						;
 													;		else {  // display movement and heading
 
-main_L1:		
+main_L1:		;FETCH	s2,		STATE
+				;COMPARE s2,		PAUSED_STATE
+				;JUMP 	Z,		main_L2				;if we're paused, don't display the score yet?
 				CALL	start_game
 				CALL	display_score				;			Dig[3] = next movement
 													;		}
@@ -358,9 +365,9 @@ main_L2:		CALL	wr_alldigits				;		write all of the digits to the display
 				;CALL	start_game					;		moved to L1 for now
 				FETCH   s2,		SP_GAME_INFO
 				CALL	DEB_rdsw
-				AND		s0,		MSK_SW6
-				COMPARE	s0,		MSK_SW6
-				CALL	Z,		level1
+ 				AND		s0,		MSK_SW6
+ 				COMPARE	s0,		MSK_SW6
+ 				CALL	Z,		level1
 				OUTPUT	s2,		PA_GAME_INFO		;PORT 9?
                                 LOAD    s2,       FC    ;clear game_info
                                 FETCH   s3,       SP_GAME_INFO
@@ -541,13 +548,13 @@ mvmt2cc:		LOAD	s2,		SP_MVMTBASE			; s2 gets base of movment conversion table
 				FETCH	s1,		(s2)				; and fetch the entry
 				RETURN															
 
-				
 level1:
-				FETCH	s3,		SP_GAME_INFO
-				LOAD	s2,		10					;changes level to faster mode if switch 6 == 1
-				OR		s3,		s2
-				STORE	s3,		SP_GAME_INFO
-				RETURN
+ 				FETCH	s3,		SP_GAME_INFO
+ 				LOAD	s2,		10					;changes level to faster mode if switch 6 == 1
+ 				OR		s3,		s2
+ 				STORE	s3,		SP_GAME_INFO
+ 				RETURN				
+				
 				
 clear_vals:		
 				LOAD	s1,		00					; 
