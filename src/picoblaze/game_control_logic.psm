@@ -601,8 +601,7 @@ chk_btns:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
 				RETURN								; if so, return to main
 				
 ;TODO			
-				;Will no buttons reset game_info to not move vehicle previous direction?
-				;RESET logic doesn't work that well...?
+				;
 				;don't need to check switch 1 unless "paused" or really, at the beginning.  count have if counter = 0
 				;display_opts will just overwrite the Dig values? 
 				;main logic so far - will not keep score when switched, and always calls..maybe.
@@ -617,7 +616,7 @@ chk_btns:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
 				
 				;PROBLEMS:
 				;starting state isn't PAUSED.  should clear 
-				;switch shouldn't start game, it should wait till user presses enter
+
 active:			
 				;manages functions when state is active
 				;updates state
@@ -636,14 +635,10 @@ active:
 				OR		s3,		s4				;update status to be active
 				STORE	s3,		SP_GAME_INFO
 				RETURN
-				
-update_info:			;puts new information to game_info output to map.v.  Doesn't output 
-				;TODO: INITIALIZE TO 0
 
 														;
 chk_collision:
 				;checks for collision, if so, updates state, outputs led pattern, outputs 
-				;game_info register with paused state info
 	;UNCOMMENT HERE			;LOAD	s2,		Colinf			;needs to get this from map.v 
 				;DUMMY VALUE below, change for later
 				LOAD	s2,		00
@@ -665,7 +660,6 @@ chk_collision:
 				
 chk_up_btn:
 ;check if player wants to pause
-				;output 
 				
 				FETCH	s2,		SP_BTN					;load saved debounce button
 				AND		s2,		MSK_BTN_UP				;mask with up button
@@ -850,12 +844,12 @@ score3:
 				JUMP	Z,		max_score
 				RETURN
 
-max_score:
-			LOAD	s1,		09
-			LOAD	Dig0,	s1
-			LOAD	Dig1,	s1	
-			LOAD	Dig2,	s1
-			LOAD	Dig3,	s1
+max_score:								;Makes the biggest score 9999 (decimal)
+			
+			LOAD	Dig0,	0D	
+			LOAD	Dig1,	0A
+			LOAD	Dig2,	0E
+			LOAD	Dig3,	0D
 			LOAD	s2,		00
 			STORE	s2,		SP_CNT_0
 			STORE	s2,		SP_CNT_1
@@ -873,7 +867,6 @@ max_score:
 ; Change difficulty, 2 options
 ; Change Number of tunnels.  Have 5 bits to work with
 ; ==================================================================================
-;OUTPUT LEDS TO SAY WHICH LEVEL IT'S AT?
 
 
 
