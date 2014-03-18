@@ -302,29 +302,11 @@ CONSTANT	SP_OLDDP,		27		; Old decimal points
 ADDRESS	000
 main:			CALL	init_btnluptbl				; initialize button to MotCtl lookup table
 				CALL	init_mvmttbl				; initialize movement to character code lookup table
+				
 				LOAD	s1,		00					; clear the semaphore
 				STORE	s1,		SP_SEM				;
-				LOAD	s1,		00					; 
-				STORE	s1,		SP_CNT_0			; clear counters
-				LOAD	s1,		00					; 
-				STORE	s1,		SP_CNT_1			; clear counters
-				LOAD	s1,		00					; 
-				STORE	s1,		SP_CNT_2			; clear counters
-				LOAD	s1,		00					; 
-				STORE	s1,		SP_CNT_3			; clear counters	
-				LOAD	s1,		00
-				STORE	s1,		SP_GAME_INFO
-				LOAD	s1,		00
-				STORE	s1,		STATE
-				
-				LOAD	s1,		00
-				STORE	s1,		MSK_NUM_VEH
-				STORE	s1,		MSK_NUM_LEV	
-				STORE	s1,		MSK_NUM_BKGRND
-				STORE	s1,		SP_BTN2		
-				STORE	s1,		SP_NUM_VEH		
-				STORE	s1,		SP_NUM_LEV		
-				STORE	s1,		SP_NUM_BKGRND
+				CALL	clear_vals
+
 				
 				LOAD	s1,		00					; turn off all of the decimal points
 				;CALL	SS_wrdpts					;
@@ -339,7 +321,8 @@ main:			CALL	init_btnluptbl				; initialize button to MotCtl lookup table
 main_L0:		FETCH	s6,		SP_SEM				;		while (SP_SEMA == 0)  {}   // loop until isr updates rojobot registers
 				COMPARE	s6,		00					;
 				JUMP	Z,		main_L0				;
-													; 
+				
+				CALL	chk_reset					; make sure reset clears all other values 
 				CALL	DEB_rdsw					;		s0 = switches
 				TEST	s0,		MSK_SW0				;		if (sw[0] == 0)   // display the Rojobot location
 				JUMP	NZ,		main_L1				; -- Z = 0 says switch is 'on'
@@ -562,9 +545,34 @@ mvmt2cc:		LOAD	s2,		SP_MVMTBASE			; s2 gets base of movment conversion table
 				RETURN															
 
 				
-;#########################################
-; Modify this function for Project 2 #####	
-;#########################################			
+clear_vals:		
+				LOAD	s1,		00					; 
+				STORE	s1,		SP_CNT_0			; clear counters
+				LOAD	s1,		00					
+				STORE	s1,		SP_CNT_1			
+				LOAD	s1,		00					 
+				STORE	s1,		SP_CNT_2			
+				LOAD	s1,		00					
+				STORE	s1,		SP_CNT_3				
+				LOAD	s1,		00
+				STORE	s1,		SP_GAME_INFO
+				LOAD	s1,		00
+				STORE	s1,		STATE			
+				LOAD	s1,		00
+				STORE	s1,		MSK_NUM_VEH
+				LOAD	s1,		00
+				STORE	s1,		MSK_NUM_LEV	
+				LOAD	s1,		00
+				STORE	s1,		MSK_NUM_BKGRND
+				LOAD	s1,		00
+				STORE	s1,		SP_BTN2		
+				LOAD	s1,		00
+				STORE	s1,		SP_NUM_VEH		
+				LOAD	s1,		00
+				STORE	s1,		SP_NUM_LEV		
+				LOAD	s1,		00
+				STORE	s1,		SP_NUM_BKGRND
+				RETURN
 			
 
 ; ==============================================================================
@@ -691,7 +699,8 @@ chk_no_btn:
 				LOAD	s2,		FC				; if 0 btns, no veh movement, is 00, so mask to make last 2 LSB 00
 				AND		s3,		s2				;if not paused, make sure next vehicle movement is straight
                                 ;later - output 00 in LEDS 
-                                STORE   s3,       SP_GAME_INFO
+                STORE   s3,       SP_GAME_INFO
+				LOAD	s3,		00
 				OUTPUT	s3,		PA_LEDS				;displays the game_info register values
 				CALL active						;if no buttons are pressed but it's not paused, still update score and state
 				RETURN
@@ -749,7 +758,18 @@ chk_right_btn:
 				RETURN	
 
 
-			
+chk_reset:
+				CALL	DEB_rdbtns
+				AND		s0,		MSK_BTN_CENTER
+				COMPARE	s0,		MSK_BTN_CENTER			;check if we hit reset
+				RETURN	NZ								;if not, return
+				CALL	clear_vals
+				LOAD	s2,		00					;clear return values also
+				OUTPUT	s2,		PA_LEDS
+				RETURN
+				
+
+				
 ; ==================================================================================
 ; ============== Score keeping functions 	================
 ; ==================================================================================
