@@ -58,14 +58,16 @@ always @ (posedge clock) begin
 			end
 			else if (icon == 2'b01) begin
 				out_color <= 8'b100_000_00;		// Maroon Color for Icon color 1
+//			   out_color <= 8'b111_111_00;		// Yellow color for Icon color 3	
+//			   out_color <= 8'b000_111_00;		// Green color for Icon color 3	
 			end
 			else if(icon == 2'b11) begin
-				out_color <= 8'b111_000_11;		// Magenta color for Icon color 3
+				out_color <= 8'b111_000_11;		// Magenta color for Icon color 3			
 			end
 			else begin
 				case (wall)
 					2'b00 : out_color <= 8'b111_111_11;		// white back ground
-					2'b01 : out_color <= 8'b000_000_00;		// Black line
+					2'b01 : out_color <= 8'b000_111_00;		// green line
 					2'b10 : out_color <= 8'b111_000_00;		// Dark Red color for Obstruction
 					2'b11 : out_color <= 8'b100_100_10;		// Grey for Reserved Area
 					default : out_color <= 8'b000_000_00;
