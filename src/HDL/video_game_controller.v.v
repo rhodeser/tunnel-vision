@@ -58,8 +58,8 @@ reg [1:0] bitmap_bot_4 [0:5] [0:5];	// normal image bitmap
 reg [1:0] bitmap_bot_begin [0:21] [0:5];
 reg [1:0] bitmap_bot_game_over [0:42] [0:5];
 
-reg [1:0] bitmap_bot_car [0:2] [0:3];	
-reg [1:0] bitmap_tree [0:9] [0:9];	// normal image bitmap
+reg [1:0] bitmap_bot_car [0:9] [0:10];	
+reg [1:0] bitmap_tree [0:9] [0:12];	// normal image bitmap
 
 integer i,j,p,q;
 reg [9:0] k,k_r;
@@ -214,7 +214,7 @@ always @ (posedge clock) begin
 	else if(pause_sticky) begin
 		if ((Pixel_row >= locY) && (Pixel_row <= (locY + 3'h5)) && (Pixel_column >= locX) && (Pixel_column <= (locX + 4'h5)) ) begin
 			//condition to know whether pixel address matches with that of bot location
-			case (db_sw[3:0])
+			case (db_sw[4:1])
 				4'b0001 : begin 
 					if(bitmap_bot_1[5 - Pixel_column + locX][Pixel_row - locY] == 2'b11) begin
 						if(randomized_value[2] == 1)
@@ -298,7 +298,7 @@ always @ (posedge clock) begin
 			
 		if ((Pixel_row >= locY) && (Pixel_row <= (locY + 3'h5)) && (Pixel_column >= locX) && (Pixel_column <= (locX + 4'h5)) ) begin
 			//condition to know whether pixel address matches with that of bot location
-			case (db_sw[3:0])
+			case (db_sw[4:1])
 				4'b0001 : begin 
 					if(bitmap_bot_1[5 - Pixel_column + locX][Pixel_row - locY] == 2'b11) begin
 						if(randomized_value[2] == 1)
@@ -393,14 +393,14 @@ always @ (posedge clock) begin
 				end
 				else begin
 					if(randomized_value_f[7:6] == 2'b11) begin
-						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_left+4) && (Pixel_column <= wally_left+4+5) ) begin
+						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_left+10) && (Pixel_column <= wally_left+10+5) ) begin
 							wall_actual <= bitmap_bot_1[5+wally_left+4-Pixel_column][Pixel_row[9:2]-cnt];
 						end
 						else
 							wall_actual <= 2'b11;
 					end
 					else if(randomized_value_f[7:6] == 2'b01) begin	
-						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_right-10) && (Pixel_column <= wally_right-10+5) ) begin
+						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_right-15) && (Pixel_column <= wally_right-15+5) ) begin
 							wall_actual <= bitmap_bot_1[5+wally_right-10-Pixel_column][Pixel_row[9:2]-cnt];
 						end
 						else
@@ -410,11 +410,47 @@ always @ (posedge clock) begin
 						wall_actual <= 2'b11;
 				end	
 			end	
-			else begin	
-				if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 10) && (Pixel_column <= 19) ) begin
+			else begin		
+				if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 10) && (Pixel_column <= 22) && (randomized_value_f[7:6] == 2'b11)) begin
 					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[19 - Pixel_column[9:2] + 10][Pixel_row[9:2] - 10+cnt];
+					wall_actual <= bitmap_tree[Pixel_column - 10][Pixel_row[9:2]-10-cnt];
 				end
+				else if ((Pixel_row[9:2] >= 20+cnt) && (Pixel_row[9:2] <= 29+cnt) && (Pixel_column >= 40) && (Pixel_column <= 52) && (randomized_value_f[7:6] == 2'b01)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 40][Pixel_row[9:2]-20-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 13+cnt) && (Pixel_row[9:2] <= 22+cnt) && (Pixel_column >= 60) && (Pixel_column <= 72) && (randomized_value_f[7:6] == 2'b00)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 60][Pixel_row[9:2]-13-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 18+cnt) && (Pixel_row[9:2] <= 27+cnt) && (Pixel_column >= 100) && (Pixel_column <= 112) && (randomized_value_f[5:4] == 2'b11)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 100][Pixel_row[9:2]-18-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 120) && (Pixel_column <= 132) && (randomized_value_f[5:4] == 2'b00)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 120][Pixel_row[9:2]-10-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 320) && (Pixel_column <= 332) && (randomized_value_f[7:6] == 2'b10)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 320][Pixel_row[9:2]-10-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 20+cnt) && (Pixel_row[9:2] <= 29+cnt) && (Pixel_column >= 360) && (Pixel_column <= 372) && (randomized_value_f[5:4] == 2'b10)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 360][Pixel_row[9:2]-20-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 13+cnt) && (Pixel_row[9:2] <= 22+cnt) && (Pixel_column >= 400) && (Pixel_column <= 412) && (randomized_value_f[5:4] == 2'b01)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 400][Pixel_row[9:2]-13-cnt];
+				end		
+				else if ((Pixel_row[9:2] >= 18+cnt) && (Pixel_row[9:2] <= 27+cnt) && (Pixel_column >= 450) && (Pixel_column <= 462) && (randomized_value_f[5:4] == 2'b11)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 450][Pixel_row[9:2]-18-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 490) && (Pixel_column <= 502) && (randomized_value_f[5:4] == 2'b00)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 490][Pixel_row[9:2]-10-cnt];
+				end					
 				else
 					wall_actual <= 2'b00; // transparent
 			end
@@ -426,16 +462,16 @@ always @ (posedge clock) begin
 				end
 				else begin
 					if(randomized_value_f[7:6] == 2'b11) begin
-						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_left+4) && (Pixel_column <= wally_left+4+5) ) begin
+						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_left+10) && (Pixel_column <= wally_left+10+5) ) begin
 							wall_actual <= bitmap_bot_1[5+wally_left+4-Pixel_column][Pixel_row[9:2]-cnt];
 						end
 						else
 							wall_actual <= 2'b11;
 					end
 					else if(randomized_value_f[7:6] == 2'b01) begin	
-						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_right-10) && (Pixel_column <= wally_right-10+5) ) begin
+						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_right-15) && (Pixel_column <= wally_right-15+5) ) begin
 							wall_actual <= bitmap_bot_1[5+wally_right-10-Pixel_column][Pixel_row[9:2]-cnt];
-						end	
+						end
 						else
 							wall_actual <= 2'b11;
 					end
@@ -444,10 +480,46 @@ always @ (posedge clock) begin
 				end	
 			end	
 			else begin
-				if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 10) && (Pixel_column <= 19) ) begin
+				if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 10) && (Pixel_column <= 22) && (randomized_value_f[7:6] == 2'b11)) begin
 					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[19 - Pixel_column[9:2] + 10][Pixel_row[9:2] - 10+cnt];
+					wall_actual <= bitmap_tree[Pixel_column - 10][Pixel_row[9:2]-10-cnt];
 				end
+				else if ((Pixel_row[9:2] >= 20+cnt) && (Pixel_row[9:2] <= 29+cnt) && (Pixel_column >= 40) && (Pixel_column <= 52) && (randomized_value_f[7:6] == 2'b01)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 40][Pixel_row[9:2]-20-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 13+cnt) && (Pixel_row[9:2] <= 22+cnt) && (Pixel_column >= 60) && (Pixel_column <= 72) && (randomized_value_f[7:6] == 2'b00)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 60][Pixel_row[9:2]-13-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 18+cnt) && (Pixel_row[9:2] <= 27+cnt) && (Pixel_column >= 100) && (Pixel_column <= 112) && (randomized_value_f[5:4] == 2'b11)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 100][Pixel_row[9:2]-18-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 120) && (Pixel_column <= 132) && (randomized_value_f[5:4] == 2'b00)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 120][Pixel_row[9:2]-10-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 320) && (Pixel_column <= 332) && (randomized_value_f[7:6] == 2'b10)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 320][Pixel_row[9:2]-10-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 20+cnt) && (Pixel_row[9:2] <= 29+cnt) && (Pixel_column >= 360) && (Pixel_column <= 372) && (randomized_value_f[5:4] == 2'b10)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 360][Pixel_row[9:2]-20-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 13+cnt) && (Pixel_row[9:2] <= 22+cnt) && (Pixel_column >= 400) && (Pixel_column <= 412) && (randomized_value_f[5:4] == 2'b01)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 400][Pixel_row[9:2]-13-cnt];
+				end		
+				else if ((Pixel_row[9:2] >= 18+cnt) && (Pixel_row[9:2] <= 27+cnt) && (Pixel_column >= 450) && (Pixel_column <= 462) && (randomized_value_f[5:4] == 2'b11)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 450][Pixel_row[9:2]-18-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 490) && (Pixel_column <= 502) && (randomized_value_f[5:4] == 2'b00)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 490][Pixel_row[9:2]-10-cnt];
+				end					
 				else
 					wall_actual <= 2'b00; // transparent
 			end		
@@ -489,7 +561,7 @@ always @ (posedge clock) begin
 				end
 				else begin
 					if(randomized_value_f[7:6] == 2'b11) begin
-						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_left+4) && (Pixel_column <= wally_left+4+5) ) begin
+						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_left+10) && (Pixel_column <= wally_left+10+5) ) begin
 							wall_actual <= bitmap_bot_1[5+wally_left+4-Pixel_column][Pixel_row[9:2]-cnt];
 							///////
 							if ((Pixel_row >= locY) && (Pixel_row <= (locY + 3'h6)) && (Pixel_column >= locX) && (Pixel_column <= (locX + 4'h6)) ) begin
@@ -501,7 +573,7 @@ always @ (posedge clock) begin
 							wall_actual <= 2'b11;
 					end
 					else if(randomized_value_f[7:6] == 2'b01) begin	
-						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_right-10) && (Pixel_column <= wally_right-10+5) ) begin
+						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_right-15) && (Pixel_column <= wally_right-15+5) ) begin
 							wall_actual <= bitmap_bot_1[5+wally_right-10-Pixel_column][Pixel_row[9:2]-cnt];
 							///////
 							if ((Pixel_row >= locY) && (Pixel_row <= (locY + 3'h6)) && (Pixel_column >= locX) && (Pixel_column <= (locX + 4'h6)) ) begin
@@ -522,10 +594,46 @@ always @ (posedge clock) begin
 					collison_detect <= 1'd1;
 				end		
 			///////
-				
-				if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 10) && (Pixel_column <= 19) ) begin
-					wall_actual <= bitmap_tree[19 - Pixel_column[9:2] + 10][Pixel_row[9:2] - 10+cnt];
+				if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 10) && (Pixel_column <= 22) && (randomized_value_f[7:6] == 2'b11)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 10][Pixel_row[9:2]-10-cnt];
 				end
+				else if ((Pixel_row[9:2] >= 20+cnt) && (Pixel_row[9:2] <= 29+cnt) && (Pixel_column >= 40) && (Pixel_column <= 52) && (randomized_value_f[7:6] == 2'b01)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 40][Pixel_row[9:2]-20-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 13+cnt) && (Pixel_row[9:2] <= 22+cnt) && (Pixel_column >= 60) && (Pixel_column <= 72) && (randomized_value_f[7:6] == 2'b00)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 60][Pixel_row[9:2]-13-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 18+cnt) && (Pixel_row[9:2] <= 27+cnt) && (Pixel_column >= 100) && (Pixel_column <= 112) && (randomized_value_f[5:4] == 2'b11)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 100][Pixel_row[9:2]-18-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 120) && (Pixel_column <= 132) && (randomized_value_f[5:4] == 2'b00)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 120][Pixel_row[9:2]-10-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 320) && (Pixel_column <= 332) && (randomized_value_f[7:6] == 2'b10)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 320][Pixel_row[9:2]-10-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 20+cnt) && (Pixel_row[9:2] <= 29+cnt) && (Pixel_column >= 360) && (Pixel_column <= 372) && (randomized_value_f[5:4] == 2'b10)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 360][Pixel_row[9:2]-20-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 13+cnt) && (Pixel_row[9:2] <= 22+cnt) && (Pixel_column >= 400) && (Pixel_column <= 412) && (randomized_value_f[5:4] == 2'b01)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 400][Pixel_row[9:2]-13-cnt];
+				end		
+				else if ((Pixel_row[9:2] >= 18+cnt) && (Pixel_row[9:2] <= 27+cnt) && (Pixel_column >= 450) && (Pixel_column <= 462) && (randomized_value_f[5:4] == 2'b11)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 450][Pixel_row[9:2]-18-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 490) && (Pixel_column <= 502) && (randomized_value_f[5:4] == 2'b00)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 490][Pixel_row[9:2]-10-cnt];
+				end					
 				else
 					wall_actual <= 2'b00; // transparent
 			end
@@ -537,7 +645,7 @@ always @ (posedge clock) begin
 				end
 				else begin
 					if(randomized_value_f[7:6] == 2'b11) begin
-						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_left+4) && (Pixel_column <= wally_left+4+5) ) begin
+						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_left+10) && (Pixel_column <= wally_left+10+5) ) begin
 							wall_actual <= bitmap_bot_1[5+wally_left+4-Pixel_column][Pixel_row[9:2]-cnt];
 							///////
 							if ((Pixel_row >= locY) && (Pixel_row <= (locY + 3'h6)) && (Pixel_column >= locX) && (Pixel_column <= (locX + 4'h6)) ) begin
@@ -549,7 +657,7 @@ always @ (posedge clock) begin
 							wall_actual <= 2'b11;
 					end
 					else if(randomized_value_f[7:6] == 2'b01) begin	
-						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_right-10) && (Pixel_column <= wally_right-10+5) ) begin
+						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_right-15) && (Pixel_column <= wally_right-15+5) ) begin
 							wall_actual <= bitmap_bot_1[5+wally_right-10-Pixel_column][Pixel_row[9:2]-cnt];
 							///////
 							if ((Pixel_row >= locY) && (Pixel_row <= (locY + 3'h6)) && (Pixel_column >= locX) && (Pixel_column <= (locX + 4'h6)) ) begin
@@ -570,21 +678,60 @@ always @ (posedge clock) begin
 					collison_detect <= 1'd1;
 				end		
 			///////			
-				if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 10) && (Pixel_column <= 19) ) begin
-					wall_actual <= bitmap_tree[19 - Pixel_column[9:2] + 10][Pixel_row[9:2] - 10+cnt];
+				if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 10) && (Pixel_column <= 22) && (randomized_value_f[7:6] == 2'b11)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 10][Pixel_row[9:2]-10-cnt];
 				end
+				else if ((Pixel_row[9:2] >= 20+cnt) && (Pixel_row[9:2] <= 29+cnt) && (Pixel_column >= 40) && (Pixel_column <= 52) && (randomized_value_f[7:6] == 2'b01)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 40][Pixel_row[9:2]-20-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 13+cnt) && (Pixel_row[9:2] <= 22+cnt) && (Pixel_column >= 60) && (Pixel_column <= 72) && (randomized_value_f[7:6] == 2'b00)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 60][Pixel_row[9:2]-13-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 18+cnt) && (Pixel_row[9:2] <= 27+cnt) && (Pixel_column >= 100) && (Pixel_column <= 112) && (randomized_value_f[5:4] == 2'b11)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 100][Pixel_row[9:2]-18-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 120) && (Pixel_column <= 132) && (randomized_value_f[5:4] == 2'b00)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 120][Pixel_row[9:2]-10-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 320) && (Pixel_column <= 332) && (randomized_value_f[7:6] == 2'b10)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 320][Pixel_row[9:2]-10-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 20+cnt) && (Pixel_row[9:2] <= 29+cnt) && (Pixel_column >= 360) && (Pixel_column <= 372) && (randomized_value_f[5:4] == 2'b10)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 360][Pixel_row[9:2]-20-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 13+cnt) && (Pixel_row[9:2] <= 22+cnt) && (Pixel_column >= 400) && (Pixel_column <= 412) && (randomized_value_f[5:4] == 2'b01)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 400][Pixel_row[9:2]-13-cnt];
+				end		
+				else if ((Pixel_row[9:2] >= 18+cnt) && (Pixel_row[9:2] <= 27+cnt) && (Pixel_column >= 450) && (Pixel_column <= 462) && (randomized_value_f[5:4] == 2'b11)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 450][Pixel_row[9:2]-18-cnt];
+				end	
+				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 490) && (Pixel_column <= 502) && (randomized_value_f[5:4] == 2'b00)) begin
+					//wall_actual <= 2'b11;
+					wall_actual <= bitmap_tree[Pixel_column - 490][Pixel_row[9:2]-10-cnt];
+				end					
 				else
 					wall_actual <= 2'b00; // transparent
 			end		
 		end		
 		
 		if(game_info_reg[4] == 1) begin //Increase game speed
-			if(Pixel_column == 10'd0 && Pixel_row[9:3] == 7'd0) begin
+			if(Pixel_column == 10'd0 && Pixel_row[9:3] == 7'd0) begin	//fast
+		//	if(Pixel_column == 10'd0 && Pixel_row[9:2] == 8'd0) begin     //slow
 				cnt <= cnt + 1'd1;
 			end			
 		end
 		else begin
-			if(Pixel_column == 10'd0 && Pixel_row[9:2] == 8'd0) begin
+			if(Pixel_column == 10'd0 && Pixel_row[9:2] == 8'd0) begin		//fast
+		//	if(Pixel_column == 10'd0 && Pixel_row[9:1] == 9'd0) begin //slow
 				cnt <= cnt + 1'd1;
 			end	
 		end
@@ -597,7 +744,6 @@ always @ (posedge clock) begin
 		game_completed <= 1'd0;
 	end
 	else begin
-		//game_completed <= game_info_reg[7];
 		game_completed <= collison_detect;
 	end
 end	
@@ -609,27 +755,19 @@ assign wall = wall_actual;
 //TREE
 always @(*) begin
 	for (p=0; p<=9; p=p+1) begin
-		for (q=0; q<=9; q=q+1) begin
-			if(p==0 && (q==5 || q==6))
-				bitmap_tree[p][q] = 2'b11;
-			else if(p==1 && (q==5 | q==6 | q==7 | q==8 ))
-				bitmap_tree[p][q] = 2'b11;			
-			else if(p==2 && (q==5 | q==6 | q==7 | q==8 ))
-				bitmap_tree[p][q] = 2'b11;			
-			else if(p==3 && (q != 4))
-				bitmap_tree[p][q] = 2'b11;			
+		for (q=0; q<=12; q=q+1) begin
+			if((p==0||p==9) && (q==4))
+				bitmap_tree[p][q] = 2'b01;
+			else if((p==1||p==8) && (q==4 || q==3))
+				bitmap_tree[p][q] = 2'b01;			
+			else if((p==2||p==7) && (q==4 || q==3 || q==2))
+				bitmap_tree[p][q] = 2'b01;			
+			else if((p==3||p==6) && (q==4||q==3 || q==2 || q==1))
+				bitmap_tree[p][q] = 2'b01;		
+			else if((p==5 | p==4) && (q==4||q==3 || q==2 || q==1 || q==0))
+				bitmap_tree[p][q] = 2'b01;	
 			else if(p==4)
-				bitmap_tree[p][q] = 2'b11;			
-			else if(p==5)
-				bitmap_tree[p][q] = 2'b11;			
-			else if(p==6 && (q!=4 ))
-				bitmap_tree[p][q] = 2'b11;			
-			else if(p==7 && (q==5 | q==6 | q==7))
-				bitmap_tree[p][q] = 2'b11;			
-			else if(p==8 && (q==5 | q==6 | q==7 ))
-				bitmap_tree[p][q] = 2'b11;			
-			else if(p==9 && (q==5 | q==6))
-				bitmap_tree[p][q] = 2'b11;			
+				bitmap_tree[p][q] = 2'b11;		
 			else
 				bitmap_tree[p][q] = 2'b00;				
 		end
@@ -709,17 +847,16 @@ always @(*) begin
 		end
 	end	
 end
+
 //car shape
 always @(*) begin
-	for (i=0; i<=2; i=i+1) begin
-		for (j=0; j<=3; j=j+1) begin
+	for (i=0; i<=9; i=i+1) begin
+		for (j=0; j<=10; j=j+1) begin
 			//car
-			if(i == 0 && (j == 1 || j ==3))
+			if((i==0 | i==1 | i==2 | i==3 | i==6 | i==7 | i==8 | i==9) && (j==3 | j==4 | j==5 | j==9 | j==10))
 				bitmap_bot_car[i][j] = 2'b01;
-			else if(i == 1 && (j == 0 || j ==2))
+			else if((i==4 | i==5) && (j==0 | j==1 | j==2 | j==6 | j==7 | j==8))
 				bitmap_bot_car[i][j] = 2'b01;			
-			else if(i == 2 && (j == 1 || j == 3))
-				bitmap_bot_car[i][j] = 2'b01;	
 			else
 				bitmap_bot_car[i][j] = 2'b00;				
 		end
