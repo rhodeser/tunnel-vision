@@ -12,6 +12,8 @@
 ; Code modified from Rojobot world emulator designed by Roy Kravitz
 ; Description:
 ; ============
+; 
+
 ; This program demonstrate the Rojobot world emulator.  It is modelled after
 ; the the Verilog Rojobot implemented in the Getting Started application only this demo is based
 ; on the full Rojobot emulator (as implemented in bot.v instead of the simplified
@@ -122,7 +124,7 @@ CONSTANT	MSK_SW0,		01		; Slide switch 0 is bit 0
 
 ;Values for masking port # to create correct game_info output
 CONSTANT	MSK_SPRITE,		03
-CONSTANT	MSK_GAME_STAT,          10	
+CONSTANT	MSK_GAME_STAT,  10	
 CONSTANT	MSK_LEVEL,		18
 CONSTANT	MSK_ICON,		60
 CONSTANT	MSK_BKGRND,		80
@@ -131,6 +133,7 @@ CONSTANT	MSK_CENTER,		01
 CONSTANT	MSK_LEFT,		10	
 
 ;values to index the number of options player can select
+
 CONSTANT	MSK_COLLISION,	01
 CONSTANT	MSK_NUM_VEH,	03
 CONSTANT	MSK_NUM_LEV,	01
@@ -309,7 +312,6 @@ main:			CALL	init_btnluptbl				; initialize button to MotCtl lookup table
 
 				
 				LOAD	s1,		00					; turn off all of the decimal points
-				;CALL	SS_wrdpts					;
 				STORE	s1,		SP_OLDDP			; and save the value	
 				ENABLE	INTERRUPT					; get the ball rolling
 									
@@ -327,21 +329,15 @@ main_L0:		FETCH	s6,		SP_SEM				;		while (SP_SEMA == 0)  {}   // loop until isr u
 				TEST	s0,		MSK_SW0				;		if (sw[0] == 0)   // display the Rojobot location
 				JUMP	NZ,		main_L1				; -- Z = 0 says switch is 'on'
 				
-				;if switch is on...? then display_opts and not score.  
-				;note - should be display opts, debugging now
-				;CALL	display_score
 				
 				;The point of this block is to keep the game in a paused state initially.  The player should be able to 
 				;select options of vehicle and background.  when ready, changing the switch will start the game.
-				
-				;WHAT I NEED TO DO:  if switch == 1, start game.  If not, do the options/location changes stuff
-				;moved start_game to main_L1?  
+		
 				FETCH	s2,		SP_SWITCH_VAL		;if we have switch == 0, which should mean options.
 				LOAD	s3,		00
 				COMPARE	s2,		s3
 				JUMP	NZ,		main_L1							;if we haven't started the game, ok to allow options
 				CALL	display_opts				;Doesn't currently display differences, will update game_info though
-				;if this doesn't work, remove these 5 lines and rename next_step to start game
 				CALL	wr_alldigits
 				CALL	DEB_rdbtns				;get debounced values
 				AND		s0,		MSK_BTN_DOWN				;mask with down button
@@ -353,30 +349,26 @@ main_L0:		FETCH	s6,		SP_SEM				;		while (SP_SEMA == 0)  {}   // loop until isr u
 				JUMP	main_L2						;
 													;		else {  // display movement and heading
 
-main_L1:		;FETCH	s2,		STATE
-				;COMPARE s2,		PAUSED_STATE
-				;JUMP 	Z,		main_L2				;if we're paused, don't display the score yet?
+main_L1:		
 				CALL	start_game
 				CALL	display_score				;			Dig[3] = next movement
 													;		}
 main_L2:		CALL	wr_alldigits				;		write all of the digits to the display
 				LOAD	s1,		Sensor				;		update LEDs with new sensor information
-				;CALL	LED_wrleds					;															;
-				;CALL	start_game					;		moved to L1 for now
 				FETCH   s2,		SP_GAME_INFO
 				CALL	DEB_rdsw
  				AND		s0,		MSK_SW6
  				COMPARE	s0,		MSK_SW6
  				CALL	Z,		level1
-				OUTPUT	s2,		PA_GAME_INFO		;PORT 9?
-                                LOAD    s2,       FC    ;clear game_info
-                                FETCH   s3,       SP_GAME_INFO
-                                AND     s3,       s2                ;mask sprite bits off for now
-                                STORE   s3,       SP_GAME_INFO
+				OUTPUT	s2,		PA_GAME_INFO		
+                LOAD    s2,     FC    				;clear game_info
+                FETCH   s3,     SP_GAME_INFO
+                AND     s3,     s2              	;mask sprite bits
+                STORE   s3,     SP_GAME_INFO
 				FETCH	s6,		SP_SEM
-				SUB		s6,		01					;		decrement semaphore
+				SUB		s6,		01					;	decrement semaphore
 				STORE	s6,		SP_SEM				;
-				JUMP	main_L0						;	} // end - main while loop	
+				JUMP	main_L0						;  end - main while loop	
 				
 													
 								
@@ -611,36 +603,18 @@ chk_btns:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
 				CALL	chk_up_btn					; see if user wants to pause
 				RETURN								; if so, return to main
 				
-;TODO			
-				;
-				;don't need to check switch 1 unless "paused" or really, at the beginning.  count have if counter = 0
-				;display_opts will just overwrite the Dig values? 
-				;main logic so far - will not keep score when switched, and always calls..maybe.
-				;update main so doesn't output old stuff but outputs new stuff, and goes based off switch
-				;is 09 correct port for PA_GAME_INF0?
-				;create sys_update interface to interrupt and load GameStatus value 
-				;updating game_info, do offset of base register ?
-				;OUTPUT GAME_INFO REGISTER AT THE END? 
-				;write a function to change game_info bits
-				;should store all outputs in SP, then call function to output all in main (like wr_alldigits).
-				;game status:  0 = paused, 1 = active
-				
-				;PROBLEMS:
-				;starting state isn't PAUSED.  should clear 
 
 active:			
 				;manages functions when state is active
 				;updates state
 				;these need to modify game_info register as well
+				
+				
 				LOAD	s4,		01
 				STORE	s4,		SP_SWITCH_VAL		;once we're in an active state, we can't use switch
 				CALL	update_score
-				;CALL 	display_score
 				LOAD 	s3,		ACTIVE_STATE
 				STORE	s3,		STATE
-				;UPDate game info for state as well?
-				;LOAD	s0,		00
-				;OUTPUT	s0,		PA_LEDS				;clear bits? probably not needed
 				FETCH	s3,		SP_GAME_INFO
 				LOAD 	s4,		80
 				OR		s3,		s4				;update status to be active
@@ -650,8 +624,6 @@ active:
 														;
 chk_collision:
 				;checks for collision, if so, updates state, outputs led pattern, outputs 
-	;UNCOMMENT HERE			;LOAD	s2,		Colinf			;needs to get this from map.v 
-				;DUMMY VALUE below, change for later
 				LOAD	s2,		00
 				AND		s2,		MSK_COLLISION		;see if we have a collision
 				LOAD	s3,		MSK_COLLISION
@@ -725,9 +697,7 @@ chk_down_btn:
 
 
 chk_left_btn:
-				;FETCH	s2,		SP_GAME_INFO	;check if we're paused - if so, skip the right and left button checking
-				;AND		s2,		MSK_GAME_STAT	
-				;COMPARE	s2,		MSK_GAME_STAT	;compare 1 with state.  if they are both 1, there's no difference, we're active, keep going
+
 				FETCH	s2,		STATE
 				COMPARE	s2,		ACTIVE_STATE
 				RETURN	NZ
@@ -736,9 +706,6 @@ chk_left_btn:
 				AND		s2,		MSK_BTN_LEFT
 				COMPARE s2,		MSK_BTN_LEFT	;see if left button pressed
 				JUMP	NZ,		chk_right_btn	;if not, check the right button
-				;FETCH	s2,		SP_SPRITE_LOC
-				;SUB		s2,		01					;x coordinate is 1 less now
-				;STORE	s2, 	SP_SPRITE_LOC	; save value back
 				FETCH	s3,		SP_GAME_INFO
 				LOAD 	s4,		FE				;moving left value is 10
 				AND		s3,		s4				;value to make LSB = 0
@@ -751,10 +718,6 @@ chk_left_btn:
 
 				
 chk_right_btn:
-				;FETCH	s2,		SP_GAME_INFO	;check if we're paused - if so, skip the right and left button checking
-				;AND		s2,		MSK_GAME_STAT		
-				;COMPARE	s2,		MSK_GAME_STAT
-				;RETURN	NZ
 				FETCH	s2,		STATE
 				COMPARE	s2,		ACTIVE_STATE
 				RETURN	NZ
@@ -762,18 +725,13 @@ chk_right_btn:
 				AND		s0,		MSK_BTN_RIGHT
 				COMPARE s0,		MSK_BTN_RIGHT
 				RETURN	NZ,						;if the right button isn't pressed, we're done (should never happen unless reset?)
-				;FETCH	s2, 	SP_SPRITE_LOC
-				;ADD		s2,		01			;x coordinate is 1 more now
-				;STORE	s2, 	SP_SPRITE_LOC	; save value back
 				FETCH	s3,		SP_GAME_INFO
 				LOAD 	s4,		FD				;moving right value is 01
 				AND		s3,		s4				;value to make 2nd bit = 0
 				LOAD	s4,		01				;value to make LSB = 1
 				OR		s3,		s4				;
 				STORE	s3,		SP_GAME_INFO
-                                ;OUTPUT  s3,         PA_GAME_INFO
 				LOAD	s5,		07
-                ;                LOAD    s5,             s3            ;output the game_info when turning right
 				OUTPUT	s5,		PA_LEDS
 				RETURN	
 
@@ -809,14 +767,10 @@ update_score:
 				;calculate first digit
 				FETCH	s2, 	SP_CNT_0
 				ADD		s2,		01
-				;LOAD	Dig0,	s2					
-				;LOAD	s3,		Dig0				;s3 contains incremented value before mask, used for 2nd digit
-				;AND		Dig0,	MSK_DECDIGIT		;put output value in Dig0 register, 0-9
 				AND		s2,		MSK_HEXDIGIT
-				;STORE	Dig0,	SP_CNT_0
 				LOAD	s3,		s2
 				STORE	s2,		SP_CNT_0
-				LOAD	s4,		0A				;should work?				
+				LOAD	s4,		0A							
 				COMPARE	s4,		s3				;make sure register value isn't gone
 								
 				JUMP	Z,		score1			;if we should increment next digit, call function
@@ -827,10 +781,6 @@ score1:
 				STORE	s5,		SP_CNT_0			;clear previous counter
 				FETCH	s2, 	SP_CNT_1		
 				ADD		s2,		01
-				;LOAD	Dig1,	s2					
-				;LOAD	s3,		Dig1				;s3 contains incremented value before mask, used for 2nd digit
-				;AND		Dig1,	MSK_DECDIGIT		;put output value in Dig0 register, 0-9
-				;STORE	Dig1,	SP_CNT_1
 				AND		s2,		MSK_HEXDIGIT
 				STORE	s2,		SP_CNT_1
 				LOAD	s4,		0A				;should work?
@@ -843,10 +793,6 @@ score2:
 				STORE	s5,		SP_CNT_1			;clear previous counter
 				FETCH	s2, 	SP_CNT_2		
 				ADD		s2,		01
-				;LOAD	Dig2,	s2					
-				;LOAD	s3,		Dig2				;s3 contains incremented value before mask, used for 2nd digit
-				;AND		Dig2,	MSK_DECDIGIT		;put output value in Dig0 register, 0-9
-				;STORE	Dig2,	SP_CNT_2
 				AND		s2,		MSK_HEXDIGIT
 				STORE	s2,		SP_CNT_2
 				LOAD	s4,		0A				;should work?
@@ -859,10 +805,6 @@ score3:
 				STORE	s5,		SP_CNT_2			;clear previous counter
 				FETCH	s2, 	SP_CNT_3		
 				ADD		s2,		01
-				;LOAD	Dig3,	s2					
-				;LOAD	s3,		Dig3				;s3 contains incremented value before mask, used for 2nd digit
-				;AND		Dig3,	MSK_DECDIGIT		;put output value in Dig0 register, 0-9
-				;STORE	Dig3,	SP_CNT_3
 				AND		s2,		MSK_HEXDIGIT
 				STORE	s2,		SP_CNT_3
 				LOAD	s4,		0A				
@@ -914,14 +856,6 @@ chk_veh_left:
 				SUB		s2,		01
 				AND		s2,		MSK_NUM_VEH
 				LOAD	Dig1,	s2				;load index of vehicles to display
-						; SHOULD BE 4 VEH TOTAL
-	;NOT WORKING YET, NEED TO OR, AND WITH NUMBER SOMEHOW?  MUST BE A BETTER WAY
-				;FETCH	s3,		SP_GAME_INFO
-				;LOAD 	s4,		FE				;icon selection is bits [6:5]
-				;AND		s3,		s4				;value to make LSB = 0
-				;LOAD	s4,		02				;value to make 2nd bit = 1
-				;OR		s3,		s4				;
-				;STORE	s3,		SP_GAME_INFO
 				STORE	s2,		SP_NUM_VEH
 				RETURN
 chk_veh_right:				
@@ -935,18 +869,8 @@ chk_veh_right:
 				ADD		s2,		01
 				AND		s2,		MSK_NUM_VEH
 				LOAD	Dig1,	s2				;load index of vehicles to display
-						; SHOULD BE 4 VEH TOTAL
-	;NOT WORKING YET, NEED TO OR, AND WITH NUMBER SOMEHOW?  MUST BE A BETTER WAY
-				;FETCH	s3,		SP_GAME_INFO
-				;LOAD 	s4,		FE				;icon selection is bits [6:5]
-				;AND		s3,		s4				;value to make LSB = 0
-				;LOAD	s4,		02				;value to make 2nd bit = 1
-				;OR		s3,		s4				;
-				;STORE	s3,		SP_GAME_INFO
 				STORE	s2,		SP_NUM_VEH			
 				RETURN
-
-
 				
 chk_background:
 				FETCH	s0,		SP_BTN2
@@ -973,30 +897,15 @@ chk_level:
 				AND		s2,		MSK_NUM_LEV
 				LOAD	Dig0,	s2
 				STORE	s2,		SP_NUM_LEV
-                                ;NOTE: WE DON'T CARE ABOUT THE REST OF THE BITS B/C IT'S BEFORE THE GAME STARTS. 
-                                ;CAVEAT - we need to store background, difficulty, and icon selection at the same time...
                                 SL0   s2
                                 SL0   s2
                                 SL0   s2
                                 SL0   s2        ;move number to 4th bit and 0 fill
                                 STORE     s2,   SP_GAME_INFO
-                                ;COMPARE   s2,   00              ;
-                                ;JUMP      Z,    level_0
-                                ;FETCH     s3,   SP_GAME_INFO          ;  
-                                ;LOAD      s2,   10
-                                ;OR        s3,   s2                    ;insert 1 for level and store
-                                ;STORE     s3,   SP_GAME_INFO
-				;RETURN
 
 level_0:
-                                ;FETCH   s3,     SP_GAME_INFO
-                                ;LOAD    s2,     EF
-                                ;AND     s3,     s2      ;mask out bit to mean level = 0
-                                ;STORE   s3,     SP_GAME_INFO
                                 RETURN 
                                 
-
-
 
 			
 ;*************************
