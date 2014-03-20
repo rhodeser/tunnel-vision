@@ -1,5 +1,8 @@
 \documentclass[11pt]{article}
 \usepackage{tikz}
+%\usepackage{xfrac}
+%\usepackage{hyperref}
+%\usepackage[export]{adjustbox}
 \def\checkmark{\tikz\fill[scale=0.4](0,.35) -- (.25,0) -- (1,.7) -- (.25,.15) -- cycle;} 
 \usepackage{proj} 	% pull in style header
 \usepackage{array}
@@ -30,18 +33,25 @@
 %----------------------------------------------------------------------------------------
 %	AUTHOR SECTION
 %----------------------------------------------------------------------------------------
-\begin{document}
+
+
+\begin{document}\raggedright
 \author{Erik Rhodes \and Bhavana Dhulipala \and Rohan Deshpande \and Nikhil Patil} % Your name
 \maketitle % Print the title
 \thispagestyle{empty}
 \cfoot{\textit{Page \thepage { of} \pageref{LastPage}}}
 \lhead{ECE540: SoC Design}
-\chead{Tunnel Vision}
-\rhead{Final Project}
+\chead{github.com/rhodeser/tunnel-vision}
+\rhead{Tunnel Vision}
 
 
-\vspace{1in}
-\includegraphics[height=0.5\textwidth]{Images/tunnel_graphic.png}\\
+\begin{figure}[h]\centering
+\includegraphics[height=0.65\textwidth]{Images/start.png}
+	%\caption{Gameplay Block Diagram}
+		\label{start}
+	\end{figure}
+
+\tableofcontents
 
 %
 %\title{\textbf{ECE540: Final Project}\\Tunnel Vision}
@@ -71,54 +81,110 @@
 % put in design specs - Pictures: Top module, Hardware specifications?
 
 \section{Introduction} 
+\textbf{Tunnel Vision} is a racing game that can be played on the \textbf{Xilinx Nexys3 FPGA} board and be displayed on a VGA monitor.
 
-What is tunnel vision, in general how does it play?
-%	\newpage	
-	\begin{figure}[t!]\centering
-	\includegraphics[height=0.8\textwidth]{Images/gameplay_diagram.png}
-	\caption{Gameplay Block Diagram}
-		\label{block_diagram}
-	\end{figure}	
+\subsection{Gameplay}
+The player tries to avoid hitting the walls as it travels down the tunnel by moving the vehicle left and right. The space in between the walls steadily decreases until the player hits a wall or obstacle. The score is based on the amount of time the vehicle remains ``alive'', and is displayed on the 7-segment display.
 
-%\section{Design Specifications}
-		
-\section{Software Implementation}
-		
-		Picoblaze assembly code was used to implement the algorithm controlling the 
-		vehicle's movement.
-		Game logic, controls, score, levels, etc...
-		
-		\begin{figure}[t!]\centering
-		\includegraphics[height=0.8\textwidth]{Images/controls_mockup.png}
-		\caption{Bot Control Flowchart}
+\subsection{Controls}
+The player can move his vehicle by using the left and right pushbuttons on the Nexys3. When the game is over, hitting the middle button will reset the course. The top button starts the game and the bottom pushbutton pauses it. Different icons and speeds can be selected by toggling the switches on the board.
+
+		\begin{figure}[h]\centering
+		\includegraphics[height=0.8\textwidth, width=0.8\textheight]{Images/controls_mockup.png}
+		\caption{Player Controls}
 			\label{controls}
 		\end{figure}	
 	 	
 
+\subsection{Features}
+\textbf{Tunnel Vision} features both starting and ending screens. The courses are generated randomly through a pseudo-random number generator. Additionally, the LEDs are lit with certain patterns depending on the action the player is taking. If the player selects the harder difficulty, the score is incremented at a faster rate and with a multiplier, awarding them a higher score for the same distance travelled.	
 
+\section{Implementation}
+
+	\begin{figure}[h]\centering
+	\includegraphics[height=0.7\textwidth, width=0.7\textheight]{Images/gameplay_diagram.png}
+	\caption{Game play Block Diagram}
+		\label{block_diagram}
+	\end{figure}	
+		
+The information controlled in the \textbf{PicoBlaze} core is sent to the \texttt{Video\_controller} module via the \texttt{game\_interface} module.  This information is constructed in an 8-bit register called \texttt{game\_info}.  The allocation of bits is seen in Figure \ref{game_info_bits}.  Collisions, obstacles, and icon changes were controlled in hardware.  The video controller received the inputs of game\_info register and the \texttt{LFSR} module, shifted the wall appropriately, and used the collision logic to stop the game and display the \textbf{Game Over} screen.
 
 		
-		%	\subsection{Forward}
-			
-Insert various code here
+\subsection{Software}
 
-\begin{lstlisting}[caption=Sequence used manage orientation counter , label=loc_check]		
-		LOAD	s0, 	LocX
-		FETCH	s1,		SP_OLD_LOCX			;see if our current location is different
-		COMPARE	s1,		s0						;if it is, we must be moving forward on a black line
-		CALL	NZ,		clear_counter		;we can clear the orientation counter at this point 	
+					
+		\begin{figure}[h]\centering
+		  \includegraphics[width=.7\textwidth]{Images/game_info_bits.png}
+		  \caption{Allocation of bits in game\_info register}
+		  \label{game_info_bits}
+		\end{figure}	
+
+		\begin{figure}[h!]\centering
+		  \includegraphics[width=.8\textwidth]{Images/game_logic.png}
+		  \caption{Flowchart of Picoblaze Logic}
+		  \label{game_logic}
+		\end{figure}	
+
+
+In order to ensure the correct flow of game play, the push button inputs were checked in the other seen in Figure \ref{game_logic}.  Each button check performs approximately the same function.  The pushbutton input is checked, all other bits not pertaining to the specific button are masked off, and the button value is checked.  If it has not been pressed, the next button check is called.  If it has been pressed, the state is updated accordingly and the LEDs output the desired pattern. 
+\vspace{12pt}
+\begin{lstlisting}[caption=Function checking if the top button has been pushed, label=chk_up_btn]		
+		FETCH	  s2,		SP_BTN				;load saved debounced button
+		AND		s2,		MSK_BTN_UP				;mask with up button
+		COMPARE s2,		MSK_BTN_UP
+		JUMP 	NZ, 	chk_no_btn				;go to next phase if no up button
+		LOAD 	s3,		PAUSED_STATE			;else pause and send out that register
+		STORE	s3,		STATE
+		FETCH	s3,		SP_GAME_INFO
+		LOAD 	s4,	    GAME_PAUSED        		;update game_info paused	
+		AND		s3,		s4						
+		STORE	s3,		SP_GAME_INFO
+		LOAD	s5,		FF						;output LED pattern
+		OUTPUT	s5,		PA_LEDS
+		RETURN	
+ \end{lstlisting}
+\vspace{12pt}
+\hspace{16pt}If the game is active and another button than the top one has been pressed, the \texttt{active} function is called.  This updates the state, score, and \texttt{game\_info} output.  In addition, when the left or right button has been pressed, the location of the vehicle is appropriately.\\
+
+\vspace{12pt}
+%include active function
+
+\begin{lstlisting}[caption=Update the state game info, label=active]		
+		CALL	update_score				
+		LOAD 	s3,		ACTIVE_STATE
+		STORE	s3,		STATE
+		FETCH	s3,		SP_GAME_INFO
+		LOAD 	s4,		GAME_ACTIVE
+		OR		s3,		s4					
+		STORE	s3,		SP_GAME_INFO
+		RETURN
  \end{lstlisting}
 
-			
+
+\hspace{16pt}In order to show the score over 4 digits, the \texttt{update\_score} function increments the least significant digit until 10 is reached.  At this point, the next significant digit counter is called and the previous value cleared.  This algorithm continues throughout all four digits. A separate function, \texttt{display\_score}, was created to actually load the stored score values to be displayed.  This structure was chosen to allow for the score to still update even if the 7-segment display is used for another output.  Future modifications to the game may make use of this function.\\		
+
+\hspace{16pt} The difficulty level of \textbf{Tunnel Vision} can be changed by toggling switch 4 (Figure \ref{controls}). When the user has switched levels, the speed of the game increases.  This information is also sent in the game\_info register (Figure \ref{game_info_bits}).  The speed control is doubled, but the score increases at a 5:4 proportion.  This scaling is accomplished by modifying the counter in the \texttt{game\_interface} module that controls the speed of the interrupts. The speed is modified in the hardware portion.\\
+
+	
 \section{Video Controller Implementation}
-	The video controller module was designed...
-	The icon, wall, and different backgrounds implementation
+	The video controller module managed the icon switching and generation, the width and location of the walls, and the collision detection.
 	
 %	\begin{figure}[t!]\centering
 %	\includegraphics[height=0.5\textwidth]{video_controller.png}
 %	\caption{Video Controller Overview}
 %		\label{controller}
 %	\end{figure}
+
+\subsection{Wall movement}
+
+\subsubsection{LFSR}
+
+\subsubsection{Edge Detection}
+
+\subsubsection{Width}
+The video controller takes 2 bits from the LFSR to generate a random direction that the walls will shift.  If the value was 0 or 3, the walls did not shift at all. 
+
+Edge detection logic......
 		
 		\subsection{Colorizer}
 		
@@ -144,8 +210,8 @@ Insert various code here
 %		\caption{Colorizer Table}
 %			\label{colorizer_table}
 %		\end{figure}
-				
-
+		\subsection{Collision Detection}		
+		
 				
 		\subsection{Icon}
 		
@@ -166,12 +232,7 @@ Insert various code here
 %		  \label{tilted_translation}
 %		\end{minipage}
 %		\end{figure}
-					
-		\begin{figure}[t!]\centering
-		  \includegraphics[width=.8\textwidth]{Images/game_info_bits.png}
-		  \caption{Allocation of bits in game\_info register}
-		  \label{game_info_bits}
-		\end{figure}
+
 		
 		
 		% first column
@@ -193,12 +254,13 @@ Length of time, github, results, etc.
 		
 		\begin{itemize}				
 	
-		\item Basically issues 
+		\item \textbf{ROM for map that dynamically changes}. We attempted to add memory in order to change the collision detection and dynamically switch wall coordinates, but this was not able to be implemented.
 		
-		\item problems we had
+		\item \textbf{Integration between hard-coded images and script generated images}.  We had trouble getting the different icons and splash screens created with Perl script to work with our current icon implementation.  Ultimately, these graphics are only used in the report and final presentation.
 				
 		\end{itemize}
 	\subsection{Time Invested}
+
 
 	
 	
@@ -208,23 +270,39 @@ Length of time, github, results, etc.
 
 	\vspace{15pt}
 	
-	\begin{tabular}{||l|c|c||}\hline	
-						& Erik Rhodes 	& Bhavana Dhulipala \\\hline
-	bot\_ctrl.psm 		&	\checkmark 	&					\\\hline
-	nexys\_bot\_if.v	&				&	\checkmark		\\\hline
-	nexys3fpga.v		&	\checkmark	&	\checkmark		\\\hline	
-	colorizer.v			&				&	\checkmark		\\\hline
-	icon.v				&				&	\checkmark		\\\hline
-
+	\begin{tabular}{||l|c|c|c|c||}\hline	
+										& Erik Rhodes 	& Bhavana Dhulipala & Rohan Deshpande 	& Nikhil Patil\\\hline
+	Game Logic				 			&	\checkmark 	&					&				 	&			\\\hline
+	Video Controller					&	\checkmark	&	\checkmark		&	\checkmark		&			\\\hline
+	Icons and Walls						&				&	\checkmark		&					&			\\\hline	
+	Graphics							&				&	\checkmark		&	\checkmark			&	\checkmark		\\\hline
+	Random Number Generation			&				&					&	\checkmark		&			\\\hline
+	Documentation and Source Control	& 	\checkmark	&					&					& \\\hline
+	
 	
 	\end{tabular}
 		\caption {Division of Tasks} \label{Division of Tasks}
 	\end{center}
 	\end{table}
 	\subsection{Future Work}
-	While our project completed all requirements and executed perfectly, there is still room for improvement. Future modifications would include:
+
 	
 	\begin{itemize}
-	\item \textbf{Multiplayer Mode:} 
+	\item \textbf{ROM Map:} The current implementation of wall generation does not use any memory.  If this functionality was converted to be stored in a ROM, different wall widths could be displayed in one frame, and collision detection could be done based off of the coordinates themselves. 
+	\item \textbf{Improved Graphics:} Creating more icons and backgrounds would improve the game's aesthetic appeal.
+	\item \textbf{Powerups and Bonuses:} Certain objects could give the player an extra life or a slower game speed.
+	\item \textbf{Multiplayer Mode:} Two different tunnels could be generated, allowing multiple players to compete against each other. 
+	
 	\end{itemize}
+	
+
+		\begin{figure}[h]
+		  \begin{flushright}
+		  \includegraphics[width=.1\textwidth]{Images/qrcode.png}
+		  \label{qrcode}
+		  \end{flushright}
+		\end{figure}		
+		
+	
+	
 \end{document}

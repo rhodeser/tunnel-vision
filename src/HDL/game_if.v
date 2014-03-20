@@ -55,6 +55,11 @@ module game_interface(
     );
 	 
 reg [25:0] count;
+<<<<<<< HEAD
+=======
+reg flag;
+//reg collison_detect_f;
+>>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 
 always @(posedge clk)
 begin
@@ -127,16 +132,39 @@ always @ (posedge clk)
 	begin
 		if(rst) begin
 			count <= 26'b0;
+<<<<<<< HEAD
 		end
 		else begin
 			if(count <= 10000000) begin	//clk to make interrupt to picoblaze for every 10msec
 					count <= count +1;
-			end
-			else begin
-					count <= 0;
-			end
+=======
+			flag <= 1'b0;
+//			collison_detect_f <= 1'd0;
 		end
-	
+		else begin
+//			collison_detect_f <= collison_detect;
+			if (game_info[4] == 1'b0) begin 			//check level, speed up interrupt (meaning score)
+				flag <= 1'b0;
+				if(count <= 10000000) begin
+						count <= count +1;
+						
+				end
+				else begin
+						count <= 0;
+				end
+			end
+		
+		else begin
+			flag <= 1'b1;
+			if(count <= 4000000) begin
+						count <= count +1;
+				end
+				else begin
+						count <= 0;
+				end
+>>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
+			end
+			end
 		if (rst) begin
 			interrupt <= 1'b0;
 		end
@@ -146,9 +174,23 @@ always @ (posedge clk)
 				interrupt <= 1'b0;
 			end
 			else begin
+<<<<<<< HEAD
 				if(count == 10000000 || collison_detect==1 )	//collision detection for every 10msec
 				begin
+=======
+//				if(count == 10000000 || (collison_detect^collison_detect_f))
+				if (flag == 1'b0) begin
+					if(count == 10000000 || collison_detect==1 )
+					begin
+						interrupt <= 1'b1;
+					end
+				end
+				if (flag == 1'b1) begin
+					if(count == 4000000 || collison_detect==1 )
+					begin
+>>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 					interrupt <= 1'b1;
+					end
 				end
 			end
 		end		
