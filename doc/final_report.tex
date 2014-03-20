@@ -127,7 +127,7 @@ The information controlled in the \textbf{PicoBlaze} core is sent to the \texttt
 
 
 In order to ensure the correct flow of game play, the push button inputs were checked in the other seen in Figure \ref{game_logic}.  Each button check performs approximately the same function.  The pushbutton input is checked, all other bits not pertaining to the specific button are masked off, and the button value is checked.  If it has not been pressed, the next button check is called.  If it has been pressed, the state is updated accordingly and the LEDs output the desired pattern. 
-
+\vspace{12pt}
 \begin{lstlisting}[caption=Function checking if the top button has been pushed, label=chk_up_btn]		
 		FETCH	  s2,		SP_BTN				;load saved debounced button
 		AND		s2,		MSK_BTN_UP				;mask with up button
@@ -143,10 +143,23 @@ In order to ensure the correct flow of game play, the push button inputs were ch
 		OUTPUT	s5,		PA_LEDS
 		RETURN	
  \end{lstlisting}
-
+\vspace{12pt}
 \hspace{16pt}If the game is active and another button than the top one has been pressed, the \texttt{active} function is called.  This updates the state, score, and \texttt{game\_info} output.  In addition, when the left or right button has been pressed, the location of the vehicle is appropriately.\\
 
+\vspace{12pt}
 %include active function
+
+\begin{lstlisting}[caption=Update the state game info, label=active]		
+		CALL	update_score				
+		LOAD 	s3,		ACTIVE_STATE
+		STORE	s3,		STATE
+		FETCH	s3,		SP_GAME_INFO
+		LOAD 	s4,		GAME_ACTIVE
+		OR		s3,		s4					
+		STORE	s3,		SP_GAME_INFO
+		RETURN
+ \end{lstlisting}
+
 
 \hspace{16pt}In order to show the score over 4 digits, the \texttt{update\_score} function increments the least significant digit until 10 is reached.  At this point, the next significant digit counter is called and the previous value cleared.  This algorithm continues throughout all four digits. A separate function, \texttt{display\_score}, was created to actually load the stored score values to be displayed.  This structure was chosen to allow for the score to still update even if the 7-segment display is used for another output.  Future modifications to the game may make use of this function.\\		
 
@@ -241,7 +254,7 @@ Length of time, github, results, etc.
 		
 		\begin{itemize}				
 	
-		\item \textbf{ROM for map that dynamically changes}. We attempted to add memory in order to change the collision detection and dynamically switch wall coordinates, but was not able to be implemented.
+		\item \textbf{ROM for map that dynamically changes}. We attempted to add memory in order to change the collision detection and dynamically switch wall coordinates, but this was not able to be implemented.
 		
 		\item \textbf{Integration between hard-coded images and script generated images}.  We had trouble getting the different icons and splash screens created with Perl script to work with our current icon implementation.  Ultimately, these graphics are only used in the report and final presentation.
 				

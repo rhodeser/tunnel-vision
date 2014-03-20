@@ -1,46 +1,38 @@
 ; -----------------------------------------------------------------
 ; Final Project - Tunnel Vision
+;
 ; Erik Rhodes
 ; Bhavana Dhulipala
 ; Rohan Deshpande
 ; Nikhil Patil
-; Version:	3.1
-; Author:	Roy Kravitz
-; Date:		03-Jan-201;
-; Revision History
+; 
+; March 20, 2014
+; ECE540 SoC Design with FPGA's
 ; ================
 ; Code modified from Rojobot world emulator designed by Roy Kravitz
-; Description:
-; ============
-; 
+; ================
 
-; This program demonstrate the Rojobot world emulator.  It is modelled after
-; the the Verilog Rojobot implemented in the Getting Started application only this demo is based
-; on the full Rojobot emulator (as implemented in bot.v instead of the simplified
-; Rojobot model used in the Getting Started project
-;
-; The demo uses the 4 pushbuttons to control the Rojobot as follows:
-;	btn_left	- Left Motor forward
-; 	btn_up		- Left Motor reverse
-;	btn_right	- Right Motor forward
-;	btn_down	- Right Motor reverse
-; If neither of the two buttons that control each motor is pushed, then the motor is stopped. 
-; If both of the two buttons that control each motor are pushed, the actions cancel each other
-; leaving the motor stopped.
-;
-; The demo has two display modes.  When switch[0] is 'off' the program displays the
-; location of the Rojobot in its "world" on the 4 digits of the 7-segment display. 
-; The leftmost two digits (digit 3 and digit 2) display the x-coordinate in Hex. 
-; The rightmost two digits (digit 1 and digit 0) display the y-coordinate in Hex.
-;
-; When switch[0] is 'on' the program uses the 4 7-segment display digits as follows
-; 	digit[3]	Indicates the Rojobot movement (Stopped, Forward, Reverse, etc.) in Hex.  See the
-; 				BotSim specification for the encoding (page 7)
-;	digits[2:0]	Indicates the Rojobot's heading in degrees.	
-	
-; The sensors are displayed on the LEDs in both display modes.
-; Decimal point 0 toggles on and off every interrupt (~every 100 msec)
-;
+;In Tunnel Vision, the player tries to avoid hitting the walls as it travels down the tunnel by moving left and right. 
+;The space in between the walls steadily decreases until the player hits a wall or obstacle. The score is based 
+;on the amount of time the vehicle remains ``alive'', and is displayed on the 7-segment display.
+
+;The player can move his vehicle by using the left and right pushbuttons on the Nexys3. When the game is over, 
+;hitting the middle button will reset the course. The top button starts the game and the bottom pushbutton 
+;pauses it. Different icons and speeds can be selected by toggling the switches on the board.
+
+;Tunnel Vision features both starting and ending screens. The courses are generated randomly through a pseudo-random number 
+;generator. Additionally, the LEDs are lit with certain patterns depending on the action the player is taking. 
+;If the player selects the harder difficulty, the score is incremented at a faster rate and with a multiplier, 
+;awarding them a higher score for the same distance travelled.	
+
+; This program handles the push button inputs inputs to control the vehicle as well as the speed selection.
+; It is in charge of displaying the score and lighting the LEDs to the appropriate state.
+; It is modelled after the full Rojobot emulator provided in Project 1 of the ECE540 class at PSU.
+
+; The decimal point 0 toggles on and off every interrupt, which changes speed based on the level selected
+; by the user.  This allows for a scaled scoring system where the faster level awards proportionally more
+; points.
+
 ; -----------------------------------------------------------------	
 
 ; ============================================
@@ -129,6 +121,7 @@ CONSTANT	MSK_RIGHT,		00
 CONSTANT	MSK_CENTER,		01
 CONSTANT	MSK_LEFT,		10	
 CONSTANT	GAME_PAUSED,	7F
+CONSTANT	GAME_ACTIVE,	80
 
 ;values to index the number of options player can select
 CONSTANT	MSK_COLLISION,	01
@@ -156,8 +149,6 @@ CONSTANT	PAUSED_STATE,	00
 CONSTANT	ACTIVE_STATE,	01
 
 CONSTANT	PA_GAME_INFO,	09			;port to interface sending information to map
-
-
 
 
 ; bit mask for LEDs
@@ -413,19 +404,18 @@ clear_vals:
 ; ==================================================================================			
 active:							
 				
-				LOAD	s4,		01					;*****
-				STORE	s4,		SP_SWITCH_VAL		;once we're in an active state, we can't use switch
 				CALL	update_score				
 				LOAD 	s3,		ACTIVE_STATE		;Update State to be active
 				STORE	s3,		STATE
 				FETCH	s3,		SP_GAME_INFO
-				LOAD 	s4,		80
+				LOAD 	s4,		GAME_ACTIVE
 				OR		s3,		s4					; Update output register to reflect active state
 				STORE	s3,		SP_GAME_INFO
 				RETURN
 				
 ; ==================================================================================
-; ************************** does need to be used *********************
+; While this is currently a stub that simply calls other functions, in the future it
+; may be upgraded to have more functionality
 ; ==================================================================================
 start_game:					
 				CALL	chk_btns				; First see if the game is over
@@ -462,8 +452,8 @@ chk_up_btn:
 				RETURN
 
 ; ==================================================================================
-; see if no buttons have been pressed - if so, check the state, and if in active, update everything
-; if paused, just return 
+; Checks if no buttons have been pressed. If this is the case, check if the player
+; is in the active state.  If so, update all information.  If not, just return.
 ; ==================================================================================				
 chk_no_btn:
 
@@ -644,7 +634,7 @@ score3:
 
 ; ==================================================================================
 ; Future work:  Have the maximum score displayed if the player reaches 9999
-; Is not currently implemented
+; It is not currently implemented
 ; ==================================================================================		
 max_score:							
 			
