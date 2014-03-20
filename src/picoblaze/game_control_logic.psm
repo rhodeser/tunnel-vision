@@ -128,6 +128,7 @@ CONSTANT	MSK_BKGRND,		80
 CONSTANT	MSK_RIGHT,		00
 CONSTANT	MSK_CENTER,		01
 CONSTANT	MSK_LEFT,		10	
+CONSTANT	GAME_PAUSED		7F
 
 ;values to index the number of options player can select
 CONSTANT	MSK_COLLISION,	01
@@ -490,7 +491,7 @@ chk_up_btn:
 				STORE	s3,		STATE
 														;change game_info to deliver paused state
 				FETCH	s3,		SP_GAME_INFO
-				LOAD 	s4,	        7F        			; value that puts 0 in game_info register, since we're paused	
+				LOAD 	s4,	    GAME_PAUSED        			; value that puts 0 in game_info register, since we're paused	
 				AND		s3,		s4						;update status to be paused
 				STORE	s3,		SP_GAME_INFO
 				LOAD	s5,		FF						;output pattern for leds
@@ -607,6 +608,8 @@ chk_reset:
 ; =========================================================================
 ; Takes the values stored in the score keeping registers and loads them to 
 ; the digit registers.  These are written to by the wr_alldigits function
+; This was created to allow other 7-segment outputs to be displayed
+; during gameplay while keeping score
 ; =========================================================================				
 display_score:		
 				FETCH	s2,		SP_CNT_0

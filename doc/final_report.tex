@@ -1,5 +1,6 @@
 \documentclass[11pt]{article}
 \usepackage{tikz}
+\usepackage{xfrac}
 \def\checkmark{\tikz\fill[scale=0.4](0,.35) -- (.25,0) -- (1,.7) -- (.25,.15) -- cycle;} 
 \usepackage{proj} 	% pull in style header
 \usepackage{array}
@@ -30,6 +31,8 @@
 %----------------------------------------------------------------------------------------
 %	AUTHOR SECTION
 %----------------------------------------------------------------------------------------
+
+
 \begin{document}\raggedright
 \author{Erik Rhodes \and Bhavana Dhulipala \and Rohan Deshpande \and Nikhil Patil} % Your name
 \maketitle % Print the title
@@ -46,7 +49,7 @@
 		\label{start}
 	\end{figure}
 
-
+\tableofcontents
 
 %
 %\title{\textbf{ECE540: Final Project}\\Tunnel Vision}
@@ -76,7 +79,7 @@
 % put in design specs - Pictures: Top module, Hardware specifications?
 
 \section{Introduction} 
-Tunnel Vision is a racing game that can be played on the \textbf{Xilinx Nexys3 FPGA} board and be displayed on a VGA monitor.
+\textbf{Tunnel Vision} is a racing game that can be played on the \textbf{Xilinx Nexys3 FPGA} board and be displayed on a VGA monitor.
 
 \subsection{Gameplay}
 The player tries to avoid hitting the walls as it travels down the tunnel by moving the vehicle left and right. The space in between the walls steadily decreases until the player hits a wall or obstacle. The score is based on the amount of time the vehicle remains ``alive'', and is displayed on the 7-segment display.
@@ -92,41 +95,59 @@ The player can move his vehicle by using the left and right pushbuttons on the N
 	 	
 
 \subsection{Features}
-Tunnel Vision features both starting and ending screens. The courses are generated randomly through a pseudo-random number generator. Additionally, the LEDs are lit with certain patterns depending on the action the player is taking. If the player selects the harder difficulty, the score is incremented at a faster rate and with a multiplier, awarding them a higher score for the same distance traveled.
+\textbf{Tunnel Vision} features both starting and ending screens. The courses are generated randomly through a pseudo-random number generator. Additionally, the LEDs are lit with certain patterns depending on the action the player is taking. If the player selects the harder difficulty, the score is incremented at a faster rate and with a multiplier, awarding them a higher score for the same distance traveled.
 	
-
 
 \section{Implementation}
 
 	\begin{figure}[h]\centering
 	\includegraphics[height=0.7\textwidth, width=0.7\textheight]{Images/gameplay_diagram.png}
-	\caption{Gameplay Block Diagram}
+	\caption{Game play Block Diagram}
 		\label{block_diagram}
 	\end{figure}	
+
+General overview of how things communicated, what was done in hardware vs soft core. 
 		
-\subsection{Picoblaze}
+The information controlled in the \textbf{PicoBlaze} core is sent to the \texttt{Video\_controller} module via the \texttt{game\_interface} module.  This information is constructed in an 8-bit register called \texttt{game\_info}.  The allocation of bits is seen in Figure \ref{game_info_bits}.
 
-
+					
+		\begin{figure}[h]\centering
+		  \includegraphics[width=.8\textwidth]{Images/game_info_bits.png}
+		  \caption{Allocation of bits in game\_info register}
+		  \label{game_info_bits}
+		\end{figure}		
 		
-		Picoblaze assembly code was used to implement the algorithm controlling the 
-		vehicle's movement.
-		Game logic, controls, score, levels, etc...
-		
+\subsection{Software}
+
+Include Picoblaze diagram. \\ 
+Collisions, obstacles, and icon changes were controlled in hardware.\\
+
+In order to ensure the correct flow of game play, the push button inputs were checked in the other seen in Figure (......).  Each button check performs approximately the same function.  The pushbutton input is checked, all other bits not pertaining to the specific button are masked off, and the button value is checked.  If it has not been pressed, the next button check is called.  If it has been pressed, the state is updated accordingly and the LEDs output the desired pattern. 
 
 
-
-
-		
-		%	\subsection{Forward}
-			
-Insert various code here
-
-\begin{lstlisting}[caption=Sequence used manage orientation counter , label=loc_check]		
-		LOAD	s0, 	LocX
-		FETCH	s1,		SP_OLD_LOCX			;see if our current location is different
-		COMPARE	s1,		s0						;if it is, we must be moving forward on a black line
-		CALL	NZ,		clear_counter		;we can clear the orientation counter at this point 	
+\begin{lstlisting}[caption=Function checking if the top button has been pushed, label=chk_up_btn]		
+		FETCH	  s2,		SP_BTN				;load saved debounced button
+		AND		s2,		MSK_BTN_UP				;mask with up button
+		COMPARE s2,		MSK_BTN_UP
+		JUMP 	NZ, 	chk_no_btn				;go to next phase if no up button
+		LOAD 	s3,		PAUSED_STATE			;else pause and send out that register
+		STORE	s3,		STATE
+		FETCH	s3,		SP_GAME_INFO
+		LOAD 	s4,	    GAME_PAUSED        		;update game_info paused	
+		AND		s3,		s4						
+		STORE	s3,		SP_GAME_INFO
+		LOAD	s5,		FF						;output LED pattern
+		OUTPUT	s5,		PA_LEDS
+		RETURN	
  \end{lstlisting}
+
+
+If the game is active and another button than the top one has been pressed, the \texttt{active} function is called.  This updates the state, score, and \texttt{game\_info} output.  
+
+ In order to show the score over 4 digits, the \texttt{update\_score} function increments the least significant digit until 10 is reached.  At this point, the next significant digit counter is called and the previous value cleared.  This algorithm continues throughout all four digits. A separate function, \texttt{display\_score}, was created to actually load the stored score values to be displayed.  This structure was chosen to allow for the score to still update even if the 7-segment display is used for another output.  Future modifications to the game may make use of this function.
+		
+		
+The difficulty level of \textbf{Tunnel Vision} can be changed by toggling switch 4 (Figure \ref{controls}). When the user has switched levels, the speed of the game increases.  This information is also sent in the game\_info register (Figure \ref{game_info_bits}).  The speed control is doubled, but the score increases at a $\sfrac{5}{4}$ proportion.  This scaling is accomplished by modifying the counter in the \texttt{game\_interface} module that controls the speed of the interrupts.
 
 
 	
@@ -164,8 +185,8 @@ Insert various code here
 %		\caption{Colorizer Table}
 %			\label{colorizer_table}
 %		\end{figure}
-				
-
+		\subsection{Collision Detection}		
+		
 				
 		\subsection{Icon}
 		
@@ -186,12 +207,7 @@ Insert various code here
 %		  \label{tilted_translation}
 %		\end{minipage}
 %		\end{figure}
-					
-		\begin{figure}[t!]\centering
-		  \includegraphics[width=.8\textwidth]{Images/game_info_bits.png}
-		  \caption{Allocation of bits in game\_info register}
-		  \label{game_info_bits}
-		\end{figure}
+
 		
 		
 		% first column
@@ -213,12 +229,15 @@ Length of time, github, results, etc.
 		
 		\begin{itemize}				
 	
-		\item Basically issues 
+		\item ROM for map that dynamically changes.
 		
-		\item problems we had
+		\item 
+		
+		\item Integration between hardcoded images and script generated images
 				
 		\end{itemize}
 	\subsection{Time Invested}
+
 
 	
 	
@@ -228,23 +247,28 @@ Length of time, github, results, etc.
 
 	\vspace{15pt}
 	
-	\begin{tabular}{||l|c|c||}\hline	
-						& Erik Rhodes 	& Bhavana Dhulipala \\\hline
-	bot\_ctrl.psm 		&	\checkmark 	&					\\\hline
-	nexys\_bot\_if.v	&				&	\checkmark		\\\hline
-	nexys3fpga.v		&	\checkmark	&	\checkmark		\\\hline	
-	colorizer.v			&				&	\checkmark		\\\hline
-	icon.v				&				&	\checkmark		\\\hline
-
+	\begin{tabular}{||l|c|c|c|c||}\hline	
+										& Erik Rhodes 	& Bhavana Dhulipala & Rohan Deshpande 	& Nikhil Patil\\\hline
+	Game Logic				 			&	\checkmark 	&					&				 	&			\\\hline
+	Video Controller					&	\checkmark	&	\checkmark		&	\checkmark		&			\\\hline
+	Icons and Walls						&				&	\checkmark		&					&			\\\hline	
+	Graphics							&				&	\checkmark		&	\checkmark			&	\checkmark		\\\hline
+	Random Number Generation			&				&					&	\checkmark		&			\\\hline
+	Documentation and Source Control	& 	\checkmark	&					&					& \\\hline
+	
 	
 	\end{tabular}
 		\caption {Division of Tasks} \label{Division of Tasks}
 	\end{center}
 	\end{table}
 	\subsection{Future Work}
-	While our project completed all requirements and executed perfectly, there is still room for improvement. Future modifications would include:
+
 	
 	\begin{itemize}
-	\item \textbf{Multiplayer Mode:} 
+	\item \textbf{ROM Map:} The current implementation of wall generation does not use any memory.  If this functionality was converted to be stored in a ROM, different wall widths could be displayed in one frame, and collision detection could be done based off of the coordinates themselves. 
+	\item \textbf{Improved Graphics:} Creating more icons and backgrounds would improve the game's aesthetic appeal.
+	\item \textbf{Powerups and Bonuses:} Certain objects could give the player an extra life or a slower game speed.
+	\item \textbf{Multiplayer Mode:} Two different tunnels could be generated, allowing multiple players to compete against each other. 
+	
 	\end{itemize}
 \end{document}
