@@ -58,8 +58,6 @@ always @ (posedge clock) begin
 			end
 			else if (icon == 2'b01) begin
 				out_color <= 8'b100_000_00;		// Maroon Color for Icon color 1
-//			   out_color <= 8'b111_111_00;		// Yellow color for Icon color 3	
-//			   out_color <= 8'b000_111_00;		// Green color for Icon color 3	
 			end
 			else if(icon == 2'b11) begin
 				out_color <= 8'b111_000_11;		// Magenta color for Icon color 3			

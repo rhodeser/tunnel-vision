@@ -64,7 +64,6 @@ output reg collison_detect,
 output wire [1:0] icon
 );
 
-<<<<<<< HEAD
 reg [1:0] bitmap_bot_1 [0:5] [0:5];	// square icon bitmap
 reg [1:0] bitmap_bot_2 [0:5] [0:5];	// ant/small bug icon bitmap
 reg [1:0] bitmap_bot_3 [0:5] [0:5];	// bot icon bitmap
@@ -72,18 +71,6 @@ reg [1:0] bitmap_bot_4 [0:5] [0:5];	// Hammer icon bitmap
 reg [1:0] bitmap_bot_begin [0:21] [0:5]; // bitmap of BEGIN screen
 reg [1:0] bitmap_bot_game_over [0:42] [0:5]; // bitmap of GAME OVER screen
 reg [1:0] bitmap_tree [0:9] [0:12];	// bitmap of tree
-=======
-reg [1:0] bitmap_bot_1 [0:5] [0:5];	// normal image bitmap
-reg [1:0] bitmap_bot_2 [0:5] [0:5];	// normal image bitmap
-reg [1:0] bitmap_bot_3 [0:5] [0:5];	// normal image bitmap
-reg [1:0] bitmap_bot_4 [0:5] [0:5];	// normal image bitmap
-
-reg [1:0] bitmap_bot_begin [0:21] [0:5];
-reg [1:0] bitmap_bot_game_over [0:42] [0:5];
-
-reg [1:0] bitmap_bot_car [0:9] [0:10];	
-reg [1:0] bitmap_tree [0:9] [0:12];	// normal image bitmap
->>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 
 integer i,j,p,q;
 
@@ -377,21 +364,12 @@ always @ (posedge clock) begin
 	end
 	else if(pause_sticky) begin	// when pause_sticky is asserted
 		if ((Pixel_row >= locY) && (Pixel_row <= (locY + 3'h5)) && (Pixel_column >= locX) && (Pixel_column <= (locX + 4'h5)) ) begin
-<<<<<<< HEAD
 			//condition to know whether pixel address matches with that of bot(icon1/icon2/icon3/icon4) location. All icons are of size 6x6.
 			case (db_sw[4:1])	//Based on the ON switch bots are selected
 				4'b0001 : begin //bitmap_bot_1 = SQUARE icon
 					if(bitmap_bot_1[Pixel_column - locX][Pixel_row - locY] == 2'b11) begin	//when the pixel of bot is colored(2'b11) then only animation(give different colors) is done otherwise make it transparent
 						if(randomized_value[2] == 1)	// Animation for icon
 							icon_actual <= 2'b01;	// Maroon color
-=======
-			//condition to know whether pixel address matches with that of bot location
-			case (db_sw[4:1])
-				4'b0001 : begin 
-					if(bitmap_bot_1[5 - Pixel_column + locX][Pixel_row - locY] == 2'b11) begin
-						if(randomized_value[2] == 1)
-							icon_actual <= 2'b01;
->>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 						else 
 							icon_actual <= 2'b11;	// Magenta color
 					end
@@ -449,18 +427,12 @@ always @ (posedge clock) begin
 			icon_actual <= 2'b00; // transparent
 		end	
 	end
-<<<<<<< HEAD
 	else begin	// when there is no pause. so bot's movement logic.
 		if(Pixel_row == 10'b0 && Pixel_column == 10'b0 && cnt[3:0] == 0) begin	
 		//we update the bot location when both pixel_row and pixel_column are 0. i.e. for every change of new screen
 		//cnt[3:0] will determine how sensitive the robo should be.
 		//For ex: cnt[2:0] makes robo more sensitive to push button pressing than cnt[3:0]																	
 			if(game_info_reg[1:0] == 2'b10) begin // move left
-=======
-	else begin
-		if(Pixel_row == 10'b0 && Pixel_column == 10'b0 && cnt[2:0] == 0) begin
-			if(bot_ctrl[1:0] == 2'b10) begin // move left
->>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 				locX <= locX - 10'd1;
 			end
 			else if(game_info_reg[1:0] == 2'b01) begin // move right
@@ -472,21 +444,12 @@ always @ (posedge clock) begin
 		end
 			
 		if ((Pixel_row >= locY) && (Pixel_row <= (locY + 3'h5)) && (Pixel_column >= locX) && (Pixel_column <= (locX + 4'h5)) ) begin
-<<<<<<< HEAD
 			//condition to know whether pixel address matches with that of bot(icon1/icon2/icon3/icon4) location. All icons are of size 6x6. 
 			case (db_sw[4:1])	//Based on the ON switch bots are selected
 				4'b0001 : begin 	//bitmap_bot_1 = SQUARE icon
 					if(bitmap_bot_1[Pixel_column - locX][Pixel_row - locY] == 2'b11) begin //when the pixel of bot is colored(2'b11) then only animation(give different colors) is done otherwise make it transparent
 						if(randomized_value[2] == 1)	// Animation for icon
 							icon_actual <= 2'b01;		// Maroon color
-=======
-			//condition to know whether pixel address matches with that of bot location
-			case (db_sw[4:1])
-				4'b0001 : begin 
-					if(bitmap_bot_1[5 - Pixel_column + locX][Pixel_row - locY] == 2'b11) begin
-						if(randomized_value[2] == 1)
-							icon_actual <= 2'b01;
->>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 						else 
 							icon_actual <= 2'b11;		// Magenta color
 					end
@@ -577,31 +540,17 @@ always @ (posedge clock) begin
 					wall_actual <= 2'b10;	//Dark Red color -- indicating wall
 				end
 				else begin
-<<<<<<< HEAD
 					if(randomized_value_f[7:6] == 2'b11) begin	// object in between tunnel comes randomly to the left side of the wall
 						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_left+10) && (Pixel_column <= wally_left+10+5) ) begin //condition to match the object in between the tunnel
 							wall_actual <= bitmap_bot_1[5+wally_left+4-Pixel_column][Pixel_row[9:2]-cnt];	// object in between tunnel is of bitmap_bot_1 shape and is of size 6x6
 						end																					// Object starts from 4 pixels from the left wall.
-=======
-					if(randomized_value_f[7:6] == 2'b11) begin
-						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_left+10) && (Pixel_column <= wally_left+10+5) ) begin
-							wall_actual <= bitmap_bot_1[5+wally_left+4-Pixel_column][Pixel_row[9:2]-cnt];
-						end
->>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 						else
 							wall_actual <= 2'b11;	//Grey color -- in between the two walls
 					end
-<<<<<<< HEAD
 					else if(randomized_value_f[7:6] == 2'b01) begin	// object in between tunnel comes randomly to the right side of the wall
 						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_right-15) && (Pixel_column <= wally_right-15+5) ) begin //condition to match the object in between the tunnel
 							wall_actual <= bitmap_bot_1[5+wally_right-10-Pixel_column][Pixel_row[9:2]-cnt];	// object in between tunnel is of bitmap_bot_1 shape and is of size 6x6
 						end																					// Object starts from 10 pixels from the right wall. 
-=======
-					else if(randomized_value_f[7:6] == 2'b01) begin	
-						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_right-15) && (Pixel_column <= wally_right-15+5) ) begin
-							wall_actual <= bitmap_bot_1[5+wally_right-10-Pixel_column][Pixel_row[9:2]-cnt];
-						end
->>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 						else
 							wall_actual <= 2'b11;	//Grey color -- in between the two walls
 					end
@@ -609,7 +558,6 @@ always @ (posedge clock) begin
 						wall_actual <= 2'b11;	//Grey color -- in between the two walls
 				end	
 			end	
-<<<<<<< HEAD
 			else begin	
 				//Background trees logic.There are 5 trees on the LHS of the left wall and 5 trees on the RHS of the right wall.
 				//If tunnel moves to the location of the tree then tree will not be displayed as tunnel is given more priority
@@ -645,48 +593,6 @@ always @ (posedge clock) begin
 				end	
 				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 490) && (Pixel_column <= 502) && (randomized_value_f[5:4] == 2'b00)) begin
 					wall_actual <= bitmap_tree[Pixel_column - 490][Pixel_row[9:2]-10-cnt];	//tree5 to the RHS
-=======
-			else begin		
-				if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 10) && (Pixel_column <= 22) && (randomized_value_f[7:6] == 2'b11)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 10][Pixel_row[9:2]-10-cnt];
-				end
-				else if ((Pixel_row[9:2] >= 20+cnt) && (Pixel_row[9:2] <= 29+cnt) && (Pixel_column >= 40) && (Pixel_column <= 52) && (randomized_value_f[7:6] == 2'b01)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 40][Pixel_row[9:2]-20-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 13+cnt) && (Pixel_row[9:2] <= 22+cnt) && (Pixel_column >= 60) && (Pixel_column <= 72) && (randomized_value_f[7:6] == 2'b00)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 60][Pixel_row[9:2]-13-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 18+cnt) && (Pixel_row[9:2] <= 27+cnt) && (Pixel_column >= 100) && (Pixel_column <= 112) && (randomized_value_f[5:4] == 2'b11)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 100][Pixel_row[9:2]-18-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 120) && (Pixel_column <= 132) && (randomized_value_f[5:4] == 2'b00)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 120][Pixel_row[9:2]-10-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 320) && (Pixel_column <= 332) && (randomized_value_f[7:6] == 2'b10)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 320][Pixel_row[9:2]-10-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 20+cnt) && (Pixel_row[9:2] <= 29+cnt) && (Pixel_column >= 360) && (Pixel_column <= 372) && (randomized_value_f[5:4] == 2'b10)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 360][Pixel_row[9:2]-20-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 13+cnt) && (Pixel_row[9:2] <= 22+cnt) && (Pixel_column >= 400) && (Pixel_column <= 412) && (randomized_value_f[5:4] == 2'b01)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 400][Pixel_row[9:2]-13-cnt];
-				end		
-				else if ((Pixel_row[9:2] >= 18+cnt) && (Pixel_row[9:2] <= 27+cnt) && (Pixel_column >= 450) && (Pixel_column <= 462) && (randomized_value_f[5:4] == 2'b11)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 450][Pixel_row[9:2]-18-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 490) && (Pixel_column <= 502) && (randomized_value_f[5:4] == 2'b00)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 490][Pixel_row[9:2]-10-cnt];
->>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 				end					
 				else
 					wall_actual <= 2'b00; // transparent
@@ -699,30 +605,17 @@ always @ (posedge clock) begin
 					wall_actual <= 2'b10;	//Dark Red color -- indicating wall
 				end
 				else begin
-<<<<<<< HEAD
 					if(randomized_value_f[7:6] == 2'b11) begin	// object in between tunnel comes randomly to the left side of the wall
 						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_left+10) && (Pixel_column <= wally_left+10+5) ) begin //condition to match the object in between the tunnel
 							wall_actual <= bitmap_bot_1[5+wally_left+4-Pixel_column][Pixel_row[9:2]-cnt];	// object in between tunnel is of bitmap_bot_1 shape and is of size 6x6
 						end																					// Object starts from 4 pixels from the left wall.
-=======
-					if(randomized_value_f[7:6] == 2'b11) begin
-						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_left+10) && (Pixel_column <= wally_left+10+5) ) begin
-							wall_actual <= bitmap_bot_1[5+wally_left+4-Pixel_column][Pixel_row[9:2]-cnt];
-						end
->>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 						else
 							wall_actual <= 2'b11;	//Grey color -- in between the two walls
 					end
 					else if(randomized_value_f[7:6] == 2'b01) begin	
-<<<<<<< HEAD
 						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_right-15) && (Pixel_column <= wally_right-15+5) ) begin //condition to match the object in between the tunnel
 							wall_actual <= bitmap_bot_1[5+wally_right-10-Pixel_column][Pixel_row[9:2]-cnt];	// object in between tunnel is of bitmap_bot_1 shape and is of size 6x6
 						end																					// Object starts from 10 pixels from the right wall.
-=======
-						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_right-15) && (Pixel_column <= wally_right-15+5) ) begin
-							wall_actual <= bitmap_bot_1[5+wally_right-10-Pixel_column][Pixel_row[9:2]-cnt];
-						end
->>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 						else
 							wall_actual <= 2'b11;	//Grey color -- in between the two walls
 					end
@@ -731,7 +624,6 @@ always @ (posedge clock) begin
 				end	
 			end	
 			else begin
-<<<<<<< HEAD
 			//Background trees logic. Same as explained above.
 				if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 10) && (Pixel_column <= 22) && (randomized_value_f[7:6] == 2'b11)) begin
 					wall_actual <= bitmap_tree[Pixel_column - 10][Pixel_row[9:2]-10-cnt];	//tree1 to the LHS 
@@ -762,47 +654,6 @@ always @ (posedge clock) begin
 				end	
 				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 490) && (Pixel_column <= 502) && (randomized_value_f[5:4] == 2'b00)) begin
 					wall_actual <= bitmap_tree[Pixel_column - 490][Pixel_row[9:2]-10-cnt];	//tree5 to the RHS 
-=======
-				if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 10) && (Pixel_column <= 22) && (randomized_value_f[7:6] == 2'b11)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 10][Pixel_row[9:2]-10-cnt];
-				end
-				else if ((Pixel_row[9:2] >= 20+cnt) && (Pixel_row[9:2] <= 29+cnt) && (Pixel_column >= 40) && (Pixel_column <= 52) && (randomized_value_f[7:6] == 2'b01)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 40][Pixel_row[9:2]-20-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 13+cnt) && (Pixel_row[9:2] <= 22+cnt) && (Pixel_column >= 60) && (Pixel_column <= 72) && (randomized_value_f[7:6] == 2'b00)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 60][Pixel_row[9:2]-13-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 18+cnt) && (Pixel_row[9:2] <= 27+cnt) && (Pixel_column >= 100) && (Pixel_column <= 112) && (randomized_value_f[5:4] == 2'b11)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 100][Pixel_row[9:2]-18-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 120) && (Pixel_column <= 132) && (randomized_value_f[5:4] == 2'b00)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 120][Pixel_row[9:2]-10-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 320) && (Pixel_column <= 332) && (randomized_value_f[7:6] == 2'b10)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 320][Pixel_row[9:2]-10-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 20+cnt) && (Pixel_row[9:2] <= 29+cnt) && (Pixel_column >= 360) && (Pixel_column <= 372) && (randomized_value_f[5:4] == 2'b10)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 360][Pixel_row[9:2]-20-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 13+cnt) && (Pixel_row[9:2] <= 22+cnt) && (Pixel_column >= 400) && (Pixel_column <= 412) && (randomized_value_f[5:4] == 2'b01)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 400][Pixel_row[9:2]-13-cnt];
-				end		
-				else if ((Pixel_row[9:2] >= 18+cnt) && (Pixel_row[9:2] <= 27+cnt) && (Pixel_column >= 450) && (Pixel_column <= 462) && (randomized_value_f[5:4] == 2'b11)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 450][Pixel_row[9:2]-18-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 490) && (Pixel_column <= 502) && (randomized_value_f[5:4] == 2'b00)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 490][Pixel_row[9:2]-10-cnt];
->>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 				end					
 				else
 					wall_actual <= 2'b00; // transparent
@@ -851,15 +702,9 @@ always @ (posedge clock) begin
 					wall_actual <= 2'b10;	//Dark Red color -- indicating wall
 				end
 				else begin
-<<<<<<< HEAD
 					if(randomized_value_f[7:6] == 2'b11) begin	// object in between tunnel comes randomly to the left side of the wall
 						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_left+10) && (Pixel_column <= wally_left+10+5) ) begin//condition to match the object in between the tunnel
 							wall_actual <= bitmap_bot_1[5+wally_left+4-Pixel_column][Pixel_row[9:2]-cnt];// object in between tunnel is of bitmap_bot_1 shape and is of size 6x6
-=======
-					if(randomized_value_f[7:6] == 2'b11) begin
-						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_left+10) && (Pixel_column <= wally_left+10+5) ) begin
-							wall_actual <= bitmap_bot_1[5+wally_left+4-Pixel_column][Pixel_row[9:2]-cnt];
->>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 							///////
 							//collision detection logic
 							if ((Pixel_row >= locY) && (Pixel_row <= (locY + 3'h6)) && (Pixel_column >= locX) && (Pixel_column <= (locX + 4'h6)) ) begin
@@ -871,15 +716,9 @@ always @ (posedge clock) begin
 						else
 							wall_actual <= 2'b11;	//Grey color -- in between the two walls
 					end
-<<<<<<< HEAD
 					else if(randomized_value_f[7:6] == 2'b01) begin	// object in between tunnel comes randomly to the right side of the wall
 						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_right-15) && (Pixel_column <= wally_right-15+5) ) begin//condition to match the object in between the tunnel
 							wall_actual <= bitmap_bot_1[5+wally_right-10-Pixel_column][Pixel_row[9:2]-cnt];// object in between tunnel is of bitmap_bot_1 shape and is of size 6x6
-=======
-					else if(randomized_value_f[7:6] == 2'b01) begin	
-						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_right-15) && (Pixel_column <= wally_right-15+5) ) begin
-							wall_actual <= bitmap_bot_1[5+wally_right-10-Pixel_column][Pixel_row[9:2]-cnt];
->>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 							///////
 							//collision detection logic
 							if ((Pixel_row >= locY) && (Pixel_row <= (locY + 3'h6)) && (Pixel_column >= locX) && (Pixel_column <= (locX + 4'h6)) ) begin
@@ -903,7 +742,6 @@ always @ (posedge clock) begin
 					collison_detect <= 1'd1;
 				end		
 			///////
-<<<<<<< HEAD
 				//Background trees logic. Same as explained above.
 				if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 10) && (Pixel_column <= 22) && (randomized_value_f[7:6] == 2'b11)) begin
 					wall_actual <= bitmap_tree[Pixel_column - 10][Pixel_row[9:2]-10-cnt];	//tree1 to the LHS 
@@ -934,47 +772,6 @@ always @ (posedge clock) begin
 				end	
 				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 490) && (Pixel_column <= 502) && (randomized_value_f[5:4] == 2'b00)) begin
 					wall_actual <= bitmap_tree[Pixel_column - 490][Pixel_row[9:2]-10-cnt];	//tree5 to the RHS
-=======
-				if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 10) && (Pixel_column <= 22) && (randomized_value_f[7:6] == 2'b11)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 10][Pixel_row[9:2]-10-cnt];
-				end
-				else if ((Pixel_row[9:2] >= 20+cnt) && (Pixel_row[9:2] <= 29+cnt) && (Pixel_column >= 40) && (Pixel_column <= 52) && (randomized_value_f[7:6] == 2'b01)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 40][Pixel_row[9:2]-20-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 13+cnt) && (Pixel_row[9:2] <= 22+cnt) && (Pixel_column >= 60) && (Pixel_column <= 72) && (randomized_value_f[7:6] == 2'b00)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 60][Pixel_row[9:2]-13-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 18+cnt) && (Pixel_row[9:2] <= 27+cnt) && (Pixel_column >= 100) && (Pixel_column <= 112) && (randomized_value_f[5:4] == 2'b11)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 100][Pixel_row[9:2]-18-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 120) && (Pixel_column <= 132) && (randomized_value_f[5:4] == 2'b00)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 120][Pixel_row[9:2]-10-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 320) && (Pixel_column <= 332) && (randomized_value_f[7:6] == 2'b10)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 320][Pixel_row[9:2]-10-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 20+cnt) && (Pixel_row[9:2] <= 29+cnt) && (Pixel_column >= 360) && (Pixel_column <= 372) && (randomized_value_f[5:4] == 2'b10)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 360][Pixel_row[9:2]-20-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 13+cnt) && (Pixel_row[9:2] <= 22+cnt) && (Pixel_column >= 400) && (Pixel_column <= 412) && (randomized_value_f[5:4] == 2'b01)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 400][Pixel_row[9:2]-13-cnt];
-				end		
-				else if ((Pixel_row[9:2] >= 18+cnt) && (Pixel_row[9:2] <= 27+cnt) && (Pixel_column >= 450) && (Pixel_column <= 462) && (randomized_value_f[5:4] == 2'b11)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 450][Pixel_row[9:2]-18-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 490) && (Pixel_column <= 502) && (randomized_value_f[5:4] == 2'b00)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 490][Pixel_row[9:2]-10-cnt];
->>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 				end					
 				else
 					wall_actual <= 2'b00; // transparent
@@ -987,15 +784,9 @@ always @ (posedge clock) begin
 					wall_actual <= 2'b10;	//Dark Red color -- indicating wall
 				end
 				else begin
-<<<<<<< HEAD
 					if(randomized_value_f[7:6] == 2'b11) begin// object in between tunnel comes randomly to the left side of the wall
 						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_left+10) && (Pixel_column <= wally_left+10+5) ) begin//condition to match the object in between the tunnel
 							wall_actual <= bitmap_bot_1[5+wally_left+4-Pixel_column][Pixel_row[9:2]-cnt];// object in between tunnel is of bitmap_bot_1 shape and is of size 6x6
-=======
-					if(randomized_value_f[7:6] == 2'b11) begin
-						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_left+10) && (Pixel_column <= wally_left+10+5) ) begin
-							wall_actual <= bitmap_bot_1[5+wally_left+4-Pixel_column][Pixel_row[9:2]-cnt];
->>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 							///////
 							if ((Pixel_row >= locY) && (Pixel_row <= (locY + 3'h6)) && (Pixel_column >= locX) && (Pixel_column <= (locX + 4'h6)) ) begin
 							//collision of the bot with the object in between the tunnel, based on the bot locations. bot is of size 6x6
@@ -1006,15 +797,9 @@ always @ (posedge clock) begin
 						else
 							wall_actual <= 2'b11;//Grey color -- in between the two walls
 					end
-<<<<<<< HEAD
 					else if(randomized_value_f[7:6] == 2'b01) begin	// object in between tunnel comes randomly to the right side of the wall
 						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_right-15) && (Pixel_column <= wally_right-15+5) ) begin//condition to match the object in between the tunnel
 							wall_actual <= bitmap_bot_1[5+wally_right-10-Pixel_column][Pixel_row[9:2]-cnt];// object in between tunnel is of bitmap_bot_1 shape and is of size 6x6
-=======
-					else if(randomized_value_f[7:6] == 2'b01) begin	
-						if ((Pixel_row[9:2] >= cnt) && (Pixel_row[9:2] <= 5+cnt) && (Pixel_column >= wally_right-15) && (Pixel_column <= wally_right-15+5) ) begin
-							wall_actual <= bitmap_bot_1[5+wally_right-10-Pixel_column][Pixel_row[9:2]-cnt];
->>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 							///////
 							if ((Pixel_row >= locY) && (Pixel_row <= (locY + 3'h6)) && (Pixel_column >= locX) && (Pixel_column <= (locX + 4'h6)) ) begin
 							//collision of the bot with the object in between the tunnel, based on the bot locations. bot is of size 6x6
@@ -1036,7 +821,6 @@ always @ (posedge clock) begin
 				//collision of the bot with the wall based on the bot locations. bot is of size 6x6
 					collison_detect <= 1'd1;
 				end		
-<<<<<<< HEAD
 			///////	
 			//Background trees logic. Same as explained above.			
 				if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 10) && (Pixel_column <= 22) && (randomized_value_f[7:6] == 2'b11)) begin
@@ -1068,55 +852,12 @@ always @ (posedge clock) begin
 				end	
 				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 490) && (Pixel_column <= 502) && (randomized_value_f[5:4] == 2'b00)) begin
 					wall_actual <= bitmap_tree[Pixel_column - 490][Pixel_row[9:2]-10-cnt];	//tree5 to the RHS
-=======
-			///////			
-				if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 10) && (Pixel_column <= 22) && (randomized_value_f[7:6] == 2'b11)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 10][Pixel_row[9:2]-10-cnt];
-				end
-				else if ((Pixel_row[9:2] >= 20+cnt) && (Pixel_row[9:2] <= 29+cnt) && (Pixel_column >= 40) && (Pixel_column <= 52) && (randomized_value_f[7:6] == 2'b01)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 40][Pixel_row[9:2]-20-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 13+cnt) && (Pixel_row[9:2] <= 22+cnt) && (Pixel_column >= 60) && (Pixel_column <= 72) && (randomized_value_f[7:6] == 2'b00)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 60][Pixel_row[9:2]-13-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 18+cnt) && (Pixel_row[9:2] <= 27+cnt) && (Pixel_column >= 100) && (Pixel_column <= 112) && (randomized_value_f[5:4] == 2'b11)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 100][Pixel_row[9:2]-18-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 120) && (Pixel_column <= 132) && (randomized_value_f[5:4] == 2'b00)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 120][Pixel_row[9:2]-10-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 320) && (Pixel_column <= 332) && (randomized_value_f[7:6] == 2'b10)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 320][Pixel_row[9:2]-10-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 20+cnt) && (Pixel_row[9:2] <= 29+cnt) && (Pixel_column >= 360) && (Pixel_column <= 372) && (randomized_value_f[5:4] == 2'b10)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 360][Pixel_row[9:2]-20-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 13+cnt) && (Pixel_row[9:2] <= 22+cnt) && (Pixel_column >= 400) && (Pixel_column <= 412) && (randomized_value_f[5:4] == 2'b01)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 400][Pixel_row[9:2]-13-cnt];
-				end		
-				else if ((Pixel_row[9:2] >= 18+cnt) && (Pixel_row[9:2] <= 27+cnt) && (Pixel_column >= 450) && (Pixel_column <= 462) && (randomized_value_f[5:4] == 2'b11)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 450][Pixel_row[9:2]-18-cnt];
-				end	
-				else if ((Pixel_row[9:2] >= 10+cnt) && (Pixel_row[9:2] <= 19+cnt) && (Pixel_column >= 490) && (Pixel_column <= 502) && (randomized_value_f[5:4] == 2'b00)) begin
-					//wall_actual <= 2'b11;
-					wall_actual <= bitmap_tree[Pixel_column - 490][Pixel_row[9:2]-10-cnt];
->>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 				end					
 				else
 					wall_actual <= 2'b00; // transparent
 			end		
 		end		
 		
-<<<<<<< HEAD
 		if(game_info_reg[4] == 1) begin //Increase game speed, by incrementing the cnt either 4 or 8 times based on the input from picoblaze
 			if(Pixel_column == 10'd0 && Pixel_row[9:3] == 7'd0) begin	//fast
 				cnt <= cnt + 1'd1; // Increment the count 8 times for every new screen
@@ -1125,18 +866,6 @@ always @ (posedge clock) begin
 		else begin
 			if(Pixel_column == 10'd0 && Pixel_row[9:2] == 8'd0) begin  //slow
 				cnt <= cnt + 1'd1;	//Increment the count 4 times for every new screen
-=======
-		if(game_info_reg[4] == 1) begin //Increase game speed
-			if(Pixel_column == 10'd0 && Pixel_row[9:3] == 7'd0) begin	//fast
-		//	if(Pixel_column == 10'd0 && Pixel_row[9:2] == 8'd0) begin     //slow
-				cnt <= cnt + 1'd1;
-			end			
-		end
-		else begin
-			if(Pixel_column == 10'd0 && Pixel_row[9:2] == 8'd0) begin		//fast
-		//	if(Pixel_column == 10'd0 && Pixel_row[9:1] == 9'd0) begin //slow
-				cnt <= cnt + 1'd1;
->>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 			end	
 		end
 	end	
@@ -1148,11 +877,7 @@ always @ (posedge clock) begin
 		game_completed <= 1'd0;
 	end
 	else begin
-<<<<<<< HEAD
 		game_completed <= collison_detect;	//when collision is detected, game_completed is asserted so that GAME OVER appears on screen
-=======
-		game_completed <= collison_detect;
->>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 	end
 end	
 
@@ -1205,61 +930,5 @@ always @(*) begin
 end	
 
 
-<<<<<<< HEAD
-=======
-// GAME OVER SCREEN
-always @(*) begin
-	for (i=0; i<=42; i=i+1) begin
-		for (j=0; j<=5; j=j+1) begin
-			//BEGIN SCREEN
-			if(i==0 | i==5 | i==7 | i==9 | i==13 | i==15 | i==24 | i==26 | i==34 | i==38)
-				bitmap_bot_game_over[i][j] = 2'b11;
-			else if( (i==1 | i==25 | i==36 | i==17) &(j==0 | j==5))
-				bitmap_bot_game_over[i][j] = 2'b11;	
-			else if( (i==2 | i==35| i==16) & (j==0 | j==3 | j==5))
-				bitmap_bot_game_over[i][j] = 2'b11;					
-			else if( (i==3) & (j==0 | j==4 | j==3 | j==5))
-				bitmap_bot_game_over[i][j] = 2'b11;									
-			else if( (i==6) & (j==0 | j==3))
-				bitmap_bot_game_over[i][j] = 2'b11;					
-			else if( (i==10 | i==12) & (j==1))
-				bitmap_bot_game_over[i][j] = 2'b11;
-			else if( (i==11) & (j==2))
-				bitmap_bot_game_over[i][j] = 2'b11;
-			else if( (i==28 | i==32) & (j==0 | j==1 | j==2 | j==3))
-				bitmap_bot_game_over[i][j] = 2'b11;				
-			else if( (i==29 | i==31) & (j==4))
-				bitmap_bot_game_over[i][j] = 2'b11;	
-			else if( (i==30) & (j==5))
-				bitmap_bot_game_over[i][j] = 2'b11;
-			else if( (i==39) & (j==0 | j==2))
-				bitmap_bot_game_over[i][j] = 2'b11;				
-			else if( (i==40) & (j==0 | j==2 | j==3))
-				bitmap_bot_game_over[i][j] = 2'b11;	
-			else if( (i==41) & (j==0 | j==2 | j==4))
-				bitmap_bot_game_over[i][j] = 2'b11;
-			else if( (i==42) & (j==0 | j==1 | j==2 | j==5))
-				bitmap_bot_game_over[i][j] = 2'b11;				
-			else
-				bitmap_bot_game_over[i][j] = 2'b00;			
-		end
-	end	
-end
-
-//car shape
-always @(*) begin
-	for (i=0; i<=9; i=i+1) begin
-		for (j=0; j<=10; j=j+1) begin
-			//car
-			if((i==0 | i==1 | i==2 | i==3 | i==6 | i==7 | i==8 | i==9) && (j==3 | j==4 | j==5 | j==9 | j==10))
-				bitmap_bot_car[i][j] = 2'b01;
-			else if((i==4 | i==5) && (j==0 | j==1 | j==2 | j==6 | j==7 | j==8))
-				bitmap_bot_car[i][j] = 2'b01;			
-			else
-				bitmap_bot_car[i][j] = 2'b00;				
-		end
-	end	
-end
->>>>>>> 7eec690f246ee3e2db5f7ac9fff4c131370e1585
 
 endmodule
