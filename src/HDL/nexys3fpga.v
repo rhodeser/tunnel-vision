@@ -1,118 +1,77 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company			: 
-// Engineer			: 
-// 
-// Create Date		:    01:08:39 01/26/2014 
-// Design Name		: 
-// Module Name		:    nexys3fpga 
-// Project Name	: 
-// Target Devices	: 
-// Tool versions	: 
-// Description: 
+// nexys3fpga.v - Top level module for Nexys3 as used in the ECE 540 Final project
 //
-// Dependencies	: 
+// Created By:		Tunnel Vision Project Team
+// Last Modified:	20-Mar-2014
+//	
+//	 Revision History
+//	 ----------------
+//	 7/8 -Mar-2014		Modified the Top Module of Getting started Project by adding dummy modules as per project requirements
+//	 9/10/11-Mar-2014	Instantiated video_game_controller module with modified inputs and outputs
+//	 12/13/14-Mar-2014	Instantiated LFSR
+//	 15-Mar-2014		Modified the instantiation of game_if module with newly added inputs/outputs
+//	 17-Mar-2014		db_sw input was added to the video_game_controller module. This made the top module complete.
 //
-// Revision: 
-// Revision 0.01 - File Created
-// Additional Comments: 
-//
-//////////////////////////////////////////////////////////////////////////////////
-// nexys3fpga.v - Top level module for Nexys3 as used in the ECE 540 Getting Started project
-//
-// Modified from S3E Starter Board files by David Glover, 29-April-2012.
-//
-// Copyright Roy Kravitz, 2008, 2009, 2010, 2011, 2012
-// 
-// Created By:		Roy Kravitz
-// Last Modified:	(RK) 17-Nov-2008
-//
-// Revision History:
-// -----------------
-// Nov-2008		RK		Created this module for the S3E Starter Board
-// Apr-2012		DG		Modified for Nexys 3 board
-// Dec-2014		RJ		Cleaned up formatting.  No functional changes
 // Description:
 // ------------
-// Top level module for the ECE 540 Getting Started reference design
+// Top level module for the ECE 540 Final Project
 // on the Nexys3 FPGA Board (Xilinx XC6LX16-CS324)
-//
-// Use the pushbuttons to control the Rojobot wheels:
-//	btnl	Left wheel forward
-//	btnu	Left wheel reverse
-//	btnr	Right wheel forward
-//	btnd	Right wheel reverse
-//  btns	System reset
-//
-//	Switches are not used. Compass heading and a turn indicator 
-//	are shown on the seven segment dispay.  LED's display the chase segments.  
+//   
 ///////////////////////////////////////////////////////////////////////////
 
 module Nexys3fpga (
 	input 				clk100,          		// 100MHz clock from on-board oscillator
-	input					btnl, btnr,				// pushbutton inputs - left and right
-	input					btnu, btnd,				// pushbutton inputs - top and bottom
-	input					btns,						// pushbutton inputs - center button
-	input		[7:0]		sw,						// switch inputs
+	input				btnl, btnr,				// pushbutton inputs - left and right
+	input				btnu, btnd,				// pushbutton inputs - top and bottom
+	input				btns,					// pushbutton inputs - center button
+	input		[7:0]	sw,						// switch inputs
 	
 	output	[7:0]		led,  					// LED outputs	
 	
-	output 	[7:0]		seg,						// Seven segment display cathode pins
+	output 	[7:0]		seg,					// Seven segment display cathode pins
 	output	[3:0]		an,						// Seven segment display anode pins	
 	
 	output	[3:0]		JA,						// JA Header
 	
 	output	[2:0]		vgaRed,					// VGA CONNECTION FOR RED COLOR
 	output	[2:0]		vgaGreen,				// VGA CONNECTION FOR GREEN COLOR
-	output	[2:1]		vgaBlue,					// VGA CONNECTION FOR BLUE COLOR
+	output	[2:1]		vgaBlue,				// VGA CONNECTION FOR BLUE COLOR
 	output				Hsync,					// HORIZONTAL SYNC
-	output				Vsync						// VERTICAL SYNC
+	output				Vsync					// VERTICAL SYNC
 	
 ); 
 
 	// INTERNAL VARIABLES
 	
 	wire 		[7:0]		db_sw;						// debounced switches
-	wire 		[4:0]		db_btns;						// debounced buttons
+	wire 		[4:0]		db_btns;					// debounced buttons
 	
 	wire					sysclk;						// 100MHz clock from on-board oscillator	
 	wire					sysreset;					// system reset signal - asserted high to force reset
 	
-	//PART II START/////
-	
-
-	wire					clk25;
-
+	wire					clk25;						//25MHz clock for video controller modules
 	
 	wire 		[4:0]		dig3, dig2, 
 							dig1, dig0;					// display digits
 	wire 		[3:0]		decpts;						// decimal points
 	wire 		[7:0]		chase_segs;					// chase segments from Rojobot (debug)
 
-/******************************************************************/
-/* CHANGE THIS SECTION FOR YOUR LAB 1   ---CHANGED                */
-/******************************************************************/		
 	
-//////////NEXYS3_BOT_IF/////////
+//////////GAME_IF/////////
 
 wire 	[7:0]		game_info;
-wire [7:0] randomized_value;
-wire collison_detect;
-//wire 				upd_sysregs;
-
+wire 	[7:0] randomized_value;
+wire 	collison_detect;
 
 wire 	[3:0]		port_id;
 wire 	[7:0]		out_port;
 wire 	[7:0]		in_port;
-
 
 wire				k_write_strobe;
 wire				write_strobe;
 wire				read_strobe;
 wire				interrupt;
 wire				interrupt_ack;
-//wire 	[7:0]		led;
-
 
 ////////////BOT.V///////////////
 
@@ -142,18 +101,12 @@ wire					video_on;
 
 /////// PART II COLORIZER.V//////////
 
-
 wire	[1:0] 			icon,wall;
 
 ////// VIDEO CONTROLLER/////
 
 wire	[9:0]			vid_row_shifted;
 wire	[9:0]			vid_col_shifted;
-
-
-
-
-
 
 /******************************************************************/
 /* THIS SECTION SHOULDN'T HAVE TO CHANGE FOR LAB 1                */
@@ -163,17 +116,13 @@ wire	[9:0]			vid_col_shifted;
 	assign 	sysreset = db_btns[0];
 	assign	JA = {sysclk, sysreset, 2'b0};
 	
-	assign 	kcpsm6_reset = (rdl || sysreset); //// CHANGED
-	
+	assign 	kcpsm6_reset = (rdl || sysreset); //// CHANGED	
 
 	assign 	vid_row_shifted				=   vid_row>> 2;
 	assign	vid_col_shifted				=   vid_col>> 2;
 	
-
 	
-
-	
-	// INSTANTUATE THE DEBOUNCE MODULE
+	// INSTANTIATE THE DEBOUNCE MODULE
 	
 	debounce 	DB (
 		.clk(sysclk),	
@@ -183,7 +132,7 @@ wire	[9:0]			vid_col_shifted;
 		.swtch_db(db_sw)
 	);	
 		
-	// INSTANTUATE THE 7 SEGMENT MODULE
+	// INSTANTIATE THE 7 SEGMENT MODULE
 	
 	sevensegment SSB (
 		// inputs for control signals
@@ -202,19 +151,13 @@ wire	[9:0]			vid_col_shifted;
 		.digits_out(digits_out)
 	);
 
-/******************************************************************/
-/* CHANGE THIS DEFINITION FOR YOUR LAB 1  ------CHANGED           */
-/******************************************************************/							
-	
-	// INSTANTUATE THE NEXYS3_BOT_IF MODULE (INTERFACE)
+// INSTANTIATE THE GAME_IF MODULE (INTERFACE)
 	
 	game_interface game_int(
 		.clk(sysclk),
 		.rst(sysreset),
 		.game_info(game_info),
-//		.game_status(game_status),
 		.collison_detect(collison_detect),
-//		.upd_sysregs(upd_sysregs),
 		.db_btns(db_btns[4:1]),
 		.db_sw(db_sw),
 		.dig3(dig3),
@@ -234,14 +177,14 @@ wire	[9:0]			vid_col_shifted;
 		.randomized_value(random_value)
 	);	
 	
-	// instantiate LSFR
+	// instantiate LSFR (RANDOM NUMBER GENERATOR)
 	lfsr lfsr_1(
-		.clk(sysclk),
-		.reset(sysreset),
+		.clock(sysclk),
+		.rst(sysreset),
 		.randomized_value(randomized_value)
     );
 	
-	// INSTANTUATE KCPSM6 MODULE (CONTROLLER)
+	// INSTANTIATE KCPSM6 MODULE (CONTROLLER)
 	
 	kcpsm6 kcpsm6(
 
@@ -258,28 +201,23 @@ wire	[9:0]			vid_col_shifted;
 		.interrupt_ack (interrupt_ack),
 		.reset 			(kcpsm6_reset),
 		.sleep			(1'b0),
-		.clk 				(sysclk) 
+		.clk 			(sysclk) 
 );
 
-	// INSTANTUATE THE PROJECT1DEMO MODULE
+	// INSTANTIATE THE game_control_logic MODULE obtained from KCPSM6 assembler 
 	
 	game_control_logic  game_ctrl(
 
-		.rdl 				(rdl),
-		.enable 			(bram_enable),
+		.rdl 			(rdl),
+		.enable 		(bram_enable),
 		.address 		(address),
 		.instruction 	(instruction),
-		.clk 				(sysclk)
+		.clk 			(sysclk)
 
 );
 
-////////////////////////PART II STARTS HERE//////////////
-
-
    wire            clkfb_in, clk0_buf;
-	
-	//assign 	clkfb_in	= clk100;					/// PART II 
-   
+	   
    // DCM clock feedback buffer
    BUFG CLK0_BUFG_INST (.I(clk0_buf), .O(clkfb_in));
 
@@ -327,7 +265,6 @@ DCM_SP #(
 
 // INSTANTIATE DTG.V MODULE
 
-
 dtg dtg(
 .clock(clk25),
 .rst(sysreset),
@@ -340,8 +277,7 @@ dtg dtg(
 
 
 
-// INSTANTIATE COLORIZE.V MODULE
-
+// INSTANTIATE COLORIZER.V MODULE
 
 colorizer colorizer(
 .clock(clk25),
@@ -352,10 +288,9 @@ colorizer colorizer(
 .red(vgaRed),
 .green(vgaGreen),
 .blue(vgaBlue)
-
 );
 
-
+// INSTANTIATE video_game_controller.v MODULE
 
 video_game_controller game_control(
 .clock(clk25),
@@ -364,7 +299,7 @@ video_game_controller game_control(
 .start(db_btns[1]),
 .pause(db_btns[3]),
 .game_info_reg(game_info),
-.bot_ctrl({db_btns[4],db_btns[2]}),
+//.bot_ctrl({db_btns[4],db_btns[2]}),
 .collison_detect(collison_detect),
 .randomized_value(randomized_value),
 .Pixel_row(vid_row),

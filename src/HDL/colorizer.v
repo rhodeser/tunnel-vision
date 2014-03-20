@@ -1,12 +1,12 @@
-// colorizer Module for Rojobot World Video Controller
+// colorizer Module for Tunnel Vision Project
 //
-//	Author:			Bhavana & Erik
-//	Last Modified:	3-Feb-2014
+//	Author:			Tunnel Vision Project Team
+//	Last Modified:	20-Mar-2014
 //	
 //	 Revision History
 //	 ----------------
-//	 25-Jan-14		Added the colorizer Module
-//	 3-Feb-2014		Added comments for better understanding.
+//	 7/8 -Mar-2014		Took the colorizer Module from Project1
+//	 17-Mar-2014		added green color to the module inorder to ressemble trees on the screen
 //
 //	Description:
 //	------------
@@ -39,9 +39,9 @@ output reg [1:0] blue
 reg [7:0] out_color;
 
 always @ (*) begin	// assigning out_color to red, green, blue
-	red = out_color[7:5];
-	green = out_color[4:2];
-	blue = out_color[1:0];
+	red = out_color[7:5];	//MSB 3-bits for red
+	green = out_color[4:2];	//remaining 3-bits for green
+	blue = out_color[1:0];	//LSB 2-bits for blue
 end
 
 always @ (posedge clock) begin
@@ -58,8 +58,6 @@ always @ (posedge clock) begin
 			end
 			else if (icon == 2'b01) begin
 				out_color <= 8'b100_000_00;		// Maroon Color for Icon color 1
-//			   out_color <= 8'b111_111_00;		// Yellow color for Icon color 3	
-//			   out_color <= 8'b000_111_00;		// Green color for Icon color 3	
 			end
 			else if(icon == 2'b11) begin
 				out_color <= 8'b111_000_11;		// Magenta color for Icon color 3			
@@ -70,7 +68,7 @@ always @ (posedge clock) begin
 					2'b01 : out_color <= 8'b000_111_00;		// green line
 					2'b10 : out_color <= 8'b111_000_00;		// Dark Red color for Obstruction
 					2'b11 : out_color <= 8'b100_100_10;		// Grey for Reserved Area
-					default : out_color <= 8'b000_000_00;
+					default : out_color <= 8'b000_000_00;	
 				endcase
 			end	
 		end
