@@ -1,16 +1,16 @@
 `timescale 1ns / 1ps
 /////////////////////////////////////////////////////////////////////////////////////////////
 // University		:	Portland State University
-// Term				:	Winter 2014
-// Engineer			:	Nikhil Patil
+// Term			:	Winter 2014
+// Engineer		:	
 // 
-// Create Date		:	01:08:20 01/26/2014 
+// Create Date		:	01:08:20 02/22/2014 
 // Module Name		:	Nexys3fpga 
 // Project Name		:	Project 1 (System on Chip)
 // Tool versions	:	Xilinx ISE 14.7
 //
-// Dependencies		:	bot.v, kcpsm6.v,SevenSegment.v, debounce.v,nexys3_bot_if.v,proj1demo.v,dtg.v
-//						colorizer.v, icon.v	 
+// Dependencies			kcpsm6.v,SevenSegment.v, debounce.v,game_interface.v,dtg.v
+//						colorizer.v, video_game_controller.v,lfsr.v	 
 //	
 //	Description		:
 //	This module is the top module for the RojoBot Project 1, in which all modules are instantiated.
@@ -20,12 +20,13 @@
 // 2.  sevensegment
 // 3.  game_interface
 // 4.  game_control_logic
-// 4.  lfsr
-// 5.  kcpsm6
-// 7.  DCM_SP
-// 8.  dtg
-// 9.  colorizer
-// 10. icon
+// 5.  video_game_controller
+// 6.  lfsr
+// 7.  kcpsm6
+// 8.  DCM_SP
+// 9.  dtg
+// 10. colorizer
+// 
 //
 // Revision: 
 // Revision 0.01 
@@ -35,7 +36,7 @@
 // Modified from S3E Starter Board files by David Glover, 29-April-2012.
 //
 // 
-// Created By		:	 Bhavana, Erik Nikhil Patil
+// Created By		:	 Bhavana, Erik Rhodes, Nikhil Patil
 // Last Modified	:	 18-March-2013
 //
 // Revision History:
@@ -44,6 +45,8 @@
 // Apr-2012		DG		Modified for Nexys 3 board
 // Dec-2014		RJ		Cleaned up formatting.  No functional changes
 // Jan-2014		NP		Modified and added
+// Feb-2014		BD		Modified and added
+// March-2014		ER,NP		Modified and added
 // Description:
 // ------------
 // Top level module for the ECE 540 Getting Started reference design
