@@ -1,8 +1,8 @@
 \documentclass[11pt]{article}
 \usepackage{tikz}
-\usepackage{xfrac}
+%\usepackage{xfrac}
 %\usepackage{hyperref}
-\usepackage[export]{adjustbox}
+%\usepackage[export]{adjustbox}
 \def\checkmark{\tikz\fill[scale=0.4](0,.35) -- (.25,0) -- (1,.7) -- (.25,.15) -- cycle;} 
 \usepackage{proj} 	% pull in style header
 \usepackage{array}
@@ -97,8 +97,7 @@ The player can move his vehicle by using the left and right pushbuttons on the N
 	 	
 
 \subsection{Features}
-\textbf{Tunnel Vision} features both starting and ending screens. The courses are generated randomly through a pseudo-random number generator. Additionally, the LEDs are lit with certain patterns depending on the action the player is taking. If the player selects the harder difficulty, the score is incremented at a faster rate and with a multiplier, awarding them a higher score for the same distance traveled.
-	
+\textbf{Tunnel Vision} features both starting and ending screens. The courses are generated randomly through a pseudo-random number generator. Additionally, the LEDs are lit with certain patterns depending on the action the player is taking. If the player selects the harder difficulty, the score is incremented at a faster rate and with a multiplier, awarding them a higher score for the same distance travelled.	
 
 \section{Implementation}
 
@@ -107,25 +106,27 @@ The player can move his vehicle by using the left and right pushbuttons on the N
 	\caption{Game play Block Diagram}
 		\label{block_diagram}
 	\end{figure}	
-
-General overview of how things communicated, what was done in hardware vs soft core. 
 		
-The information controlled in the \textbf{PicoBlaze} core is sent to the \texttt{Video\_controller} module via the \texttt{game\_interface} module.  This information is constructed in an 8-bit register called \texttt{game\_info}.  The allocation of bits is seen in Figure \ref{game_info_bits}.
+The information controlled in the \textbf{PicoBlaze} core is sent to the \texttt{Video\_controller} module via the \texttt{game\_interface} module.  This information is constructed in an 8-bit register called \texttt{game\_info}.  The allocation of bits is seen in Figure \ref{game_info_bits}.  Collisions, obstacles, and icon changes were controlled in hardware.  The video controller received the inputs of game\_info register and the \texttt{LFSR} module, shifted the wall appropriately, and used the collision logic to stop the game and display the \textbf{Game Over} screen.
 
-					
-		\begin{figure}[h]\centering
-		  \includegraphics[width=.8\textwidth]{Images/game_info_bits.png}
-		  \caption{Allocation of bits in game\_info register}
-		  \label{game_info_bits}
-		\end{figure}		
 		
 \subsection{Software}
 
-Include Picoblaze diagram. \\ 
-Collisions, obstacles, and icon changes were controlled in hardware.\\
+					
+		\begin{figure}[h]\centering
+		  \includegraphics[width=.7\textwidth]{Images/game_info_bits.png}
+		  \caption{Allocation of bits in game\_info register}
+		  \label{game_info_bits}
+		\end{figure}	
 
-In order to ensure the correct flow of game play, the push button inputs were checked in the other seen in Figure (......).  Each button check performs approximately the same function.  The pushbutton input is checked, all other bits not pertaining to the specific button are masked off, and the button value is checked.  If it has not been pressed, the next button check is called.  If it has been pressed, the state is updated accordingly and the LEDs output the desired pattern. 
+		\begin{figure}[h!]\centering
+		  \includegraphics[width=.8\textwidth]{Images/game_logic.png}
+		  \caption{Flowchart of Picoblaze Logic}
+		  \label{game_logic}
+		\end{figure}	
 
+
+In order to ensure the correct flow of game play, the push button inputs were checked in the other seen in Figure \ref{game_logic}.  Each button check performs approximately the same function.  The pushbutton input is checked, all other bits not pertaining to the specific button are masked off, and the button value is checked.  If it has not been pressed, the next button check is called.  If it has been pressed, the state is updated accordingly and the LEDs output the desired pattern. 
 
 \begin{lstlisting}[caption=Function checking if the top button has been pushed, label=chk_up_btn]		
 		FETCH	  s2,		SP_BTN				;load saved debounced button
@@ -143,25 +144,34 @@ In order to ensure the correct flow of game play, the push button inputs were ch
 		RETURN	
  \end{lstlisting}
 
+\hspace{16pt}If the game is active and another button than the top one has been pressed, the \texttt{active} function is called.  This updates the state, score, and \texttt{game\_info} output.  In addition, when the left or right button has been pressed, the location of the vehicle is appropriately.\\
 
-If the game is active and another button than the top one has been pressed, the \texttt{active} function is called.  This updates the state, score, and \texttt{game\_info} output.  
+%include active function
 
- In order to show the score over 4 digits, the \texttt{update\_score} function increments the least significant digit until 10 is reached.  At this point, the next significant digit counter is called and the previous value cleared.  This algorithm continues throughout all four digits. A separate function, \texttt{display\_score}, was created to actually load the stored score values to be displayed.  This structure was chosen to allow for the score to still update even if the 7-segment display is used for another output.  Future modifications to the game may make use of this function.
-		
-		
-The difficulty level of \textbf{Tunnel Vision} can be changed by toggling switch 4 (Figure \ref{controls}). When the user has switched levels, the speed of the game increases.  This information is also sent in the game\_info register (Figure \ref{game_info_bits}).  The speed control is doubled, but the score increases at a $\sfrac{5}{4}$ proportion.  This scaling is accomplished by modifying the counter in the \texttt{game\_interface} module that controls the speed of the interrupts.
+\hspace{16pt}In order to show the score over 4 digits, the \texttt{update\_score} function increments the least significant digit until 10 is reached.  At this point, the next significant digit counter is called and the previous value cleared.  This algorithm continues throughout all four digits. A separate function, \texttt{display\_score}, was created to actually load the stored score values to be displayed.  This structure was chosen to allow for the score to still update even if the 7-segment display is used for another output.  Future modifications to the game may make use of this function.\\		
 
+\hspace{16pt} The difficulty level of \textbf{Tunnel Vision} can be changed by toggling switch 4 (Figure \ref{controls}). When the user has switched levels, the speed of the game increases.  This information is also sent in the game\_info register (Figure \ref{game_info_bits}).  The speed control is doubled, but the score increases at a 5:4 proportion.  This scaling is accomplished by modifying the counter in the \texttt{game\_interface} module that controls the speed of the interrupts. The speed is modified in the hardware portion.\\
 
 	
 \section{Video Controller Implementation}
-	The video controller module was designed...
-	The icon, wall, and different backgrounds implementation
+	The video controller module managed the icon switching and generation, the width and location of the walls, and the collision detection.
 	
 %	\begin{figure}[t!]\centering
 %	\includegraphics[height=0.5\textwidth]{video_controller.png}
 %	\caption{Video Controller Overview}
 %		\label{controller}
 %	\end{figure}
+
+\subsection{Wall movement}
+
+\subsubsection{LFSR}
+
+\subsubsection{Edge Detection}
+
+\subsubsection{Width}
+The video controller takes 2 bits from the LFSR to generate a random direction that the walls will shift.  If the value was 0 or 3, the walls did not shift at all. 
+
+Edge detection logic......
 		
 		\subsection{Colorizer}
 		
@@ -275,7 +285,7 @@ Length of time, github, results, etc.
 
 		\begin{figure}[h]
 		  \begin{flushright}
-		  \includegraphics[width=.1\textwidth, left]{Images/qrcode.png}
+		  \includegraphics[width=.1\textwidth]{Images/qrcode.png}
 		  \label{qrcode}
 		  \end{flushright}
 		\end{figure}		
