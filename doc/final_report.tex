@@ -30,18 +30,23 @@
 %----------------------------------------------------------------------------------------
 %	AUTHOR SECTION
 %----------------------------------------------------------------------------------------
-\begin{document}
+\begin{document}\raggedright
 \author{Erik Rhodes \and Bhavana Dhulipala \and Rohan Deshpande \and Nikhil Patil} % Your name
 \maketitle % Print the title
 \thispagestyle{empty}
 \cfoot{\textit{Page \thepage { of} \pageref{LastPage}}}
 \lhead{ECE540: SoC Design}
-\chead{Tunnel Vision}
-\rhead{Final Project}
+\chead{github.com/rhodeser/tunnel-vision}
+\rhead{Tunnel Vision}
 
 
-\vspace{1in}
-\includegraphics[height=0.5\textwidth]{Images/tunnel_graphic.png}\\
+\begin{figure}[h]\centering
+\includegraphics[height=0.65\textwidth]{Images/start.png}
+	%\caption{Gameplay Block Diagram}
+		\label{start}
+	\end{figure}
+
+
 
 %
 %\title{\textbf{ECE540: Final Project}\\Tunnel Vision}
@@ -71,29 +76,43 @@
 % put in design specs - Pictures: Top module, Hardware specifications?
 
 \section{Introduction} 
+Tunnel Vision is a racing game that can be played on the \textbf{Xilinx Nexys3 FPGA} board and be displayed on a VGA monitor.
 
-What is tunnel vision, in general how does it play?
-%	\newpage	
-	\begin{figure}[t!]\centering
-	\includegraphics[height=0.8\textwidth]{Images/gameplay_diagram.png}
+\subsection{Gameplay}
+The player tries to avoid hitting the walls as it travels down the tunnel by moving the vehicle left and right. The space in between the walls steadily decreases until the player hits a wall or obstacle. The score is based on the amount of time the vehicle remains ``alive'', and is displayed on the 7-segment display.
+
+\subsection{Controls}
+The player can move his vehicle by using the left and right pushbuttons on the Nexys3. When the game is over, hitting the middle button will reset the course. The top button starts the game and the bottom pushbutton pauses it. Different icons and speeds can be selected by toggling the switches on the board.
+
+		\begin{figure}[h]\centering
+		\includegraphics[height=0.8\textwidth, width=0.8\textheight]{Images/controls_mockup.png}
+		\caption{Player Controls}
+			\label{controls}
+		\end{figure}	
+	 	
+
+\subsection{Features}
+Tunnel Vision features both starting and ending screens. The courses are generated randomly through a pseudo-random number generator. Additionally, the LEDs are lit with certain patterns depending on the action the player is taking. If the player selects the harder difficulty, the score is incremented at a faster rate and with a multiplier, awarding them a higher score for the same distance traveled.
+	
+
+
+\section{Implementation}
+
+	\begin{figure}[h]\centering
+	\includegraphics[height=0.7\textwidth, width=0.7\textheight]{Images/gameplay_diagram.png}
 	\caption{Gameplay Block Diagram}
 		\label{block_diagram}
 	\end{figure}	
-
-%\section{Design Specifications}
 		
-\section{Software Implementation}
+\subsection{Picoblaze}
+
+
 		
 		Picoblaze assembly code was used to implement the algorithm controlling the 
 		vehicle's movement.
 		Game logic, controls, score, levels, etc...
 		
-		\begin{figure}[t!]\centering
-		\includegraphics[height=0.8\textwidth]{Images/controls_mockup.png}
-		\caption{Bot Control Flowchart}
-			\label{controls}
-		\end{figure}	
-	 	
+
 
 
 
@@ -109,7 +128,8 @@ Insert various code here
 		CALL	NZ,		clear_counter		;we can clear the orientation counter at this point 	
  \end{lstlisting}
 
-			
+
+	
 \section{Video Controller Implementation}
 	The video controller module was designed...
 	The icon, wall, and different backgrounds implementation

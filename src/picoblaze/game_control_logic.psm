@@ -330,10 +330,8 @@ main_L0:		FETCH	s6,		SP_SEM				;		while (SP_SEMA == 0)  {}   // loop until isr u
 				CALL	DEB_rdbtns					;get debounced values
 				AND		s0,		MSK_BTN_DOWN		;mask with down button
 				COMPARE s0,		MSK_BTN_DOWN
-				JUMP    Z,	main_L2        			;if the down button is pressed, start the game. if not, jump past it and display values
-			
-				CALL	start_game
-				
+				JUMP    Z,	main_L2        			;if the down button is pressed, start the game. if not, jump past it and display values			
+				CALL	start_game				
 				JUMP	main_L2						
 
 main_L1:		
