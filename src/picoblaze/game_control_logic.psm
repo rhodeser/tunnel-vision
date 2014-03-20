@@ -128,7 +128,7 @@ CONSTANT	MSK_BKGRND,		80
 CONSTANT	MSK_RIGHT,		00
 CONSTANT	MSK_CENTER,		01
 CONSTANT	MSK_LEFT,		10	
-CONSTANT	GAME_PAUSED		7F
+CONSTANT	GAME_PAUSED,	7F
 
 ;values to index the number of options player can select
 CONSTANT	MSK_COLLISION,	01
@@ -315,31 +315,12 @@ main:			CALL	init_btnluptbl				; initialize button to MotCtl lookup table
 													;	while(1) {  // main loop is an infinite loop
 main_L0:		FETCH	s6,		SP_SEM				;		while (SP_SEMA == 0)  {}   // loop until isr updates rojobot registers
 				COMPARE	s6,		00					;
-				JUMP	Z,		main_L0				;
-				
-				CALL	chk_reset					; 		make sure reset clears all other values 
-				CALL	DEB_rdsw					;		s0 = switches
-				TEST	s0,		MSK_SW0				;		if (sw[0] == 0)   // display the Rojobot location
-				JUMP	NZ,		main_L1				; -- Z = 0 says switch is 'on'
-				
-													;keep the game in a paused state initially. 
-				FETCH	s2,		SP_SWITCH_VAL		;check if switch 0 is on
-				LOAD	s3,		00
-				COMPARE	s2,		s3
-				JUMP	NZ,		main_L1				;if we haven't started the game, ok to allow options
-				CALL	wr_alldigits
-				CALL	DEB_rdbtns					;get debounced values
-				AND		s0,		MSK_BTN_DOWN		;mask with down button
-				COMPARE s0,		MSK_BTN_DOWN
-				JUMP    Z,	main_L2        			;if the down button is pressed, start the game. if not, jump past it and display values			
-				CALL	start_game				
-				JUMP	main_L2						
+				JUMP	Z,		main_L0				;				
 
 main_L1:		
 				CALL	start_game
-				CALL	display_score
-													
-main_L2:		CALL	wr_alldigits				;write all of the digits to the display
+				CALL	display_score												
+				CALL	wr_alldigits				;write all of the digits to the display
 				LOAD	s1,		Sensor				;update LEDs with new sensor information
 				FETCH   s2,		SP_GAME_INFO
 				CALL	DEB_rdsw
@@ -425,23 +406,7 @@ clear_vals:
 				LOAD	s1,		00
 				STORE	s1,		SP_NUM_BKGRND
 				RETURN
-			
-; ==================================================================================
-; ************************** does need to be used *********************
-; ==================================================================================
-start_game:					
-				CALL	chk_collision				; First see if the game is over
-				RETURN								; If there was a collision, don't do any more
 
-; ==================================================================================
-; Check pushbutton value and store on scratch pad RAM
-; ==================================================================================				
-chk_btns:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
-				LOAD	s1,	s0						;copy and store value
-				STORE	s1,	SP_BTN
-				CALL	chk_up_btn					; see if user wants to pause
-				RETURN								; if so, return to main
-				
 ; ==================================================================================
 ; This function is called whenever it has been determined that the game is not paused
 ; It manages the outputs and state
@@ -458,25 +423,23 @@ active:
 				OR		s3,		s4					; Update output register to reflect active state
 				STORE	s3,		SP_GAME_INFO
 				RETURN
+				
+; ==================================================================================
+; ************************** does need to be used *********************
+; ==================================================================================
+start_game:					
+				CALL	chk_btns				; First see if the game is over
+				RETURN								; If there was a collision, don't do any more
 
-;************************** not used *******************														;
-chk_collision:
-				;checks for collision, if so, updates state, outputs led pattern, outputs 
-				LOAD	s2,		00
-				AND		s2,		MSK_COLLISION		;see if we have a collision
-				LOAD	s3,		MSK_COLLISION
-				COMPARE s2,		s3				
-				JUMP 	NZ,		chk_btns			;if no collision, move on to checking buttons
-				LOAD 	s3,		PAUSED_STATE
-				STORE	s3,		STATE 				;if we do have a collision, update state to paused and 
-				;update status for game_info output	;send this info out to the game_info register
-				FETCH	s3,		SP_GAME_INFO
-				LOAD 	s4,		FB
-				AND		s3,		s4				;update status to be paused
-				STORE	s3,		SP_GAME_INFO
-				LOAD	s5,		FF				;output pattern for leds
-				OUTPUT	s5,		PA_LEDS
-				RETURN
+; ==================================================================================
+; Check pushbutton value and store on scratch pad RAM
+; ==================================================================================				
+chk_btns:		CALL	DEB_rdbtns					; Read the pushbuttons. buttons returned in s0
+				LOAD	s1,	s0						;copy and store value
+				STORE	s1,	SP_BTN
+				CALL	chk_up_btn					; see if user wants to pause
+				RETURN								; if so, return to main	
+
 				
 ; ==================================================================================
 ; This checks if the player wants to pause the game.  
@@ -679,13 +642,16 @@ score3:
 				JUMP	Z,		max_score
 				RETURN
 
-				; ****************** not used *******************
-max_score:								;Makes the biggest score 9999 (decimal)
+; ==================================================================================
+; Future work:  Have the maximum score displayed if the player reaches 9999
+; Is not currently implemented
+; ==================================================================================		
+max_score:							
 			
-				LOAD	Dig0,	0D	
-				LOAD	Dig1,	0A
-				LOAD	Dig2,	0E
-				LOAD	Dig3,	0D
+				LOAD	Dig0,	09	
+				LOAD	Dig1,	09
+				LOAD	Dig2,	09
+				LOAD	Dig3,	09
 				LOAD	s2,		00
 				STORE	s2,		SP_CNT_0
 				STORE	s2,		SP_CNT_1
@@ -693,7 +659,6 @@ max_score:								;Makes the biggest score 9999 (decimal)
 				STORE	s2,		SP_CNT_3		
 				RETURN
 			
-
 					
 ; ===============================================================================
 ; === init_btnluptbl() - initialize button translation lookup table in SP RAM ===
