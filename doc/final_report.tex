@@ -103,13 +103,12 @@ The player can move his vehicle by using the left and right pushbuttons on the N
 
 	\begin{figure}[h]\centering
 	\includegraphics[height=0.7\textwidth, width=0.7\textheight]{Images/gameplay_diagram.png}
-	\caption{Game play Block Diagram}
+	\caption{Game Play Block Diagram}
 		\label{block_diagram}
 	\end{figure}	
 		
 The information controlled in the \textbf{PicoBlaze} core is sent to the \texttt{Video\_controller} module via the \texttt{game\_interface} module.  This information is constructed in an 8-bit register called \texttt{game\_info}.  The allocation of bits is seen in Figure \ref{game_info_bits}.  Collisions, obstacles, and icon changes were controlled in hardware.  The video controller received the inputs of game\_info register and the \texttt{LFSR} module, shifted the wall appropriately, and used the collision logic to stop the game and display the \textbf{Game Over} screen.
 
-		
 \subsection{Software}
 
 					
@@ -126,7 +125,7 @@ The information controlled in the \textbf{PicoBlaze} core is sent to the \texttt
 		\end{figure}	
 
 
-In order to ensure the correct flow of game play, the push button inputs were checked in the other seen in Figure \ref{game_logic}.  Each button check performs approximately the same function.  The pushbutton input is checked, all other bits not pertaining to the specific button are masked off, and the button value is checked.  If it has not been pressed, the next button check is called.  If it has been pressed, the state is updated accordingly and the LEDs output the desired pattern. 
+In order to ensure the correct flow of game play, the push button inputs were checked in the order seen in Figure \ref{game_logic}.  Each button check performs approximately the same function.  The pushbutton input is checked, all other bits not pertaining to the specific button are masked off, and the button value is checked.  If it has not been pressed, the next button check is called.  If it has been pressed, the state is updated accordingly and the LEDs output the desired pattern. 
 \vspace{12pt}
 \begin{lstlisting}[caption=Function checking if the top button has been pushed, label=chk_up_btn]		
 		FETCH	  s2,		SP_BTN				;load saved debounced button
@@ -175,19 +174,45 @@ In order to ensure the correct flow of game play, the push button inputs were ch
 %		\label{controller}
 %	\end{figure}
 
-\subsection{Wall movement}
+\subsection{Walls}
+The tunnel walls consist two black lines separated by a predefined width.  The walls directions are generated randomly using a linear feedback shift register. The video controller takes 2 bits from the LFSR and moves the walls left, right, or keeps them at the same position.  Since there are 4 possible numbers, the last possibility defaulted to keeping the walls at the same position.  \\
 
-\subsubsection{LFSR}
+\hspace{12pt} The tunnel width, which is a function of time, decreases continuously as the user is playing the game. 
+It is controlled by a flag that is set whenever the counter reaches a specific number. The wall speed is also monitored by a counter, which decides when to alter the current pixel and row.\\
 
-\subsubsection{Edge Detection}
+\hspace{12pt} Edge detection was performed in order to ensure the walls did not move out of bounds.  \\
 
-\subsubsection{Width}
-The video controller takes 2 bits from the LFSR to generate a random direction that the walls will shift.  If the value was 0 or 3, the walls did not shift at all. 
-
-Edge detection logic......
+\subsection{Collision Detection}	
+		%TODO Is it only the x coordinate from the icon?  	See module, include code
+		We are detecting collisions by comparing the x and y coordinates of the wall and the x coordinate of the icon (right?) This is because the icon never moves up or down. If they are equal then that is a collision  and a register called collision detect is made high. At every clock edge collision detect is checked, when one it  concludes the game. At this time the icon is not displayed and a ``Game Over'' screen is displayed.  
+	
+	%include code snippet
+	
+		\subsection{Icons}
+		%TODO Actual explanation of Icons, 
+		There are currently four icons which can be selected by different switches on the board. The icons were created by directly coding the images into bits instead of reading the image from a \texttt{coe} file. 
 		
-		\subsection{Colorizer}
-		
+\subsection{Colorizer}
+
+The \texttt{colorizer} module displays the icon and tunnel walls pixel by pixel.  Table \ref{colorizer} summarizes the color scheme used for wall and icon.
+ 
+	\begin {table}
+	\begin {center} 
+	\vspace{15pt}
+	
+	\begin{tabular}{||c|c|c|c||}\hline	
+		Wall	&	Icon	&	Color	&	Purpose		\\\hline
+		00		&	00		&	White 	&	Background 	\\\hline
+		01		&	00		&	Black 	&	Walls 		\\\hline
+		10		&	00		&	Red 	&	Obstacles 	\\\hline
+		11		&	00		&	Gray 	&	Background	\\\hline
+		X		&	01		&	Maroon	&	Unused		\\\hline
+		X		&	10		&	Cyan	&	Start/End Screen	\\\hline
+		X		&	11		&	Magenta	&	Start/End Screen	\\\hline	
+	\end{tabular}
+		\caption {Color Schemes} \label{colorizer}
+	\end{center}
+	\end{table} 		
 
 %		\begin{figure}
 %		\centering
@@ -210,11 +235,6 @@ Edge detection logic......
 %		\caption{Colorizer Table}
 %			\label{colorizer_table}
 %		\end{figure}
-		\subsection{Collision Detection}		
-		
-				
-		\subsection{Icon}
-		
 
 
 %		\begin{figure}
@@ -248,7 +268,7 @@ Edge detection logic......
 
 
 \section{Conclusion}
-Length of time, github, results, etc.
+Creating \textbf{Tunnel Vision} was an enjoyable experience (for the most part).  While we did face some roadblocks, we were pleased with the overall result.  There are many different paths we can take in the future to add new features to this game.
 
 	\subsection{Challenges}
 		
@@ -259,11 +279,7 @@ Length of time, github, results, etc.
 		\item \textbf{Integration between hard-coded images and script generated images}.  We had trouble getting the different icons and splash screens created with Perl script to work with our current icon implementation.  Ultimately, these graphics are only used in the report and final presentation.
 				
 		\end{itemize}
-	\subsection{Time Invested}
 
-
-	
-	
 	%table "Division of Tasks" 
 	\begin {table}[H]
 	\begin {center} 
@@ -302,7 +318,5 @@ Length of time, github, results, etc.
 		  \label{qrcode}
 		  \end{flushright}
 		\end{figure}		
-		
-	
 	
 \end{document}
