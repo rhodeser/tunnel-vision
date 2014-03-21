@@ -660,9 +660,8 @@ always @ (posedge clock) begin
 			end		
 		end		
 	end
-	//PAUSE LOGIC COMPLETED
 	
-	
+	//Pause Logic
 	else begin	//when there is no pause => movement of walls to the left/right. Decrease/Increase in width of the wall. Bot's movement to left/right.
 				//Background trees movement. Object in between tunnel movement
 				//collision detection with walls and with objects in between the tunnel.
