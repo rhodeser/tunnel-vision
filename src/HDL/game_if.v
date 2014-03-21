@@ -60,6 +60,7 @@ reg flag;
 always @(posedge clk)
 begin
 	
+// Multiplex the outputs of the interface (to peripherals)
 	if(write_strobe == 1'b1)
 	begin
 		case(port_id)
@@ -102,6 +103,8 @@ end
 
 // READ STROBE OPERATION
 
+// Assign the peripheral that is the input to the picoblaze depending on the port ID
+
 always @(posedge clk)
 begin
 
@@ -130,8 +133,9 @@ always @ (posedge clk)
 			count <= 26'b0;
 			flag <= 1'b0;
 		end
-		else begin			
-			if (game_info[4] == 1'b0) begin //check level, speed up interrupt (meaning score) 
+		else begin
+			//check level, and set flag appropriately to change the meaning score			
+			if (game_info[4] == 1'b0) begin  
 				flag <= 1'b0;
 				if(count <= 10000000) begin	//clk to make interrupt to picoblaze for every 10msec
 					count <= count +1;
@@ -142,7 +146,7 @@ always @ (posedge clk)
 			end
 			else begin
 				flag <= 1'b1;
-				if(count <= 4000000) begin//clk to make interrupt to picoblaze for every 40msec
+				if(count <= 4000000) begin	//clk to make interrupt to picoblaze for every 4msec
 					count <= count +1;
 				end
 				else begin
@@ -160,14 +164,20 @@ always @ (posedge clk)
 				interrupt <= 1'b0;
 			end
 			else begin
+			// Interrupts the Picoblaze at different rates depending on the level the user
+			// selected.  This increments the score at a higher rate when the play is more difficult
+
+			// If on the slower speed, interrupt every 10ms
 				if (flag == 1'b0) begin
-					if(count == 10000000 || collison_detect==1 )	//interrupt is produced either when collision is detected or for every 10msec
+					if(count == 10000000 || collison_detect==1 )	
 					begin
 						interrupt <= 1'b1;
 					end
+			// If playing at 2x the speed, interrupt every 4ms
+
 				end
 				if (flag == 1'b1) begin
-					if(count == 4000000 || collison_detect==1 )		//interrupt is produced either when collision is detected or for every 40msec
+					if(count == 4000000 || collison_detect==1 )		
 					begin
 						interrupt <= 1'b1;
 					end

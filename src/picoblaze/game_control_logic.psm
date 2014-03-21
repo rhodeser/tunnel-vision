@@ -12,18 +12,18 @@
 ; Code modified from Rojobot world emulator designed by Roy Kravitz
 ; ================
 
-;In Tunnel Vision, the player tries to avoid hitting the walls as it travels down the tunnel by moving left and right. 
-;The space in between the walls steadily decreases until the player hits a wall or obstacle. The score is based 
-;on the amount of time the vehicle remains ``alive'', and is displayed on the 7-segment display.
+; In Tunnel Vision, the player tries to avoid hitting the walls as it travels down the tunnel by moving left and right. 
+; The space in between the walls steadily decreases until the player hits a wall or obstacle. The score is based 
+; on the amount of time the vehicle remains ``alive'', and is displayed on the 7-segment display.
 
-;The player can move his vehicle by using the left and right pushbuttons on the Nexys3. When the game is over, 
-;hitting the middle button will reset the course. The top button starts the game and the bottom pushbutton 
-;pauses it. Different icons and speeds can be selected by toggling the switches on the board.
+; The player can move his vehicle by using the left and right pushbuttons on the Nexys3. When the game is over, 
+; hitting the middle button will reset the course. The top button starts the game and the bottom pushbutton 
+; pauses it. Different icons and speeds can be selected by toggling the switches on the board.
 
-;Tunnel Vision features both starting and ending screens. The courses are generated randomly through a pseudo-random number 
-;generator. Additionally, the LEDs are lit with certain patterns depending on the action the player is taking. 
-;If the player selects the harder difficulty, the score is incremented at a faster rate and with a multiplier, 
-;awarding them a higher score for the same distance travelled.	
+; Tunnel Vision features both starting and ending screens. The courses are generated randomly through a pseudo-random number 
+; generator. Additionally, the LEDs are lit with certain patterns depending on the action the player is taking. 
+; If the player selects the harder difficulty, the score is incremented at a faster rate and with a multiplier, 
+; awarding them a higher score for the same distance travelled.	
 
 ; This program handles the push button inputs inputs to control the vehicle as well as the speed selection.
 ; It is in charge of displaying the score and lighting the LEDs to the appropriate state.
@@ -50,7 +50,6 @@ NAMEREG		sA,		Dig3			; 7-segment display digit 3
 NAMEREG		s9,		Dig2			; 7-segment display digit 2
 NAMEREG		s8,		Dig1			; 7-segment display digit 1
 NAMEREG		s7,		Dig0			; 7-segment display digit 0
-
 
 
 ; ======================
@@ -291,42 +290,42 @@ CONSTANT	SP_OLDDP,		27		; Old decimal points
 
 ADDRESS	000
 main:			CALL	init_btnluptbl				; initialize button to MotCtl lookup table
-				CALL	init_mvmttbl				; initialize movement to character code lookup table
-				LOAD	s1,		00					; clear the semaphore
-				STORE	s1,		SP_SEM				
-				CALL	clear_vals					; initialize/reset all other values
-				LOAD	s1,		00					; turn off all of the decimal points
-				STORE	s1,		SP_OLDDP			; and save the value	
-				ENABLE	INTERRUPT					; get the ball rolling
+				CALL	init_mvmttbl			; initialize movement to character code lookup table
+				LOAD	s1,		00		; clear the semaphore
+				STORE	s1,		SP_SEM			
+				CALL	clear_vals			; initialize/reset all other values
+				LOAD	s1,		00		; turn off all of the decimal points
+				STORE	s1,		SP_OLDDP	; and save the value	
+				ENABLE	INTERRUPT			; get the ball rolling
 									
 
 ; ==================
 ; === Main  Loop ===
 ; ==================
-													;	while(1) {  // main loop is an infinite loop
-main_L0:		FETCH	s6,		SP_SEM				;		while (SP_SEMA == 0)  {}   // loop until isr updates rojobot registers
-				COMPARE	s6,		00					;
-				JUMP	Z,		main_L0				;				
+										; main loop is an infinite loop
+main_L0:		FETCH	s6,		SP_SEM				; loop until isr updates rojobot registers
+				COMPARE	s6,		00			
+				JUMP	Z,		main_L0						
 
 main_L1:		
 				CALL	start_game
 				CALL	display_score												
 				CALL	wr_alldigits				;write all of the digits to the display
-				LOAD	s1,		Sensor				;update LEDs with new sensor information
+				LOAD	s1,		Sensor			;update LEDs with new sensor information
 				FETCH   s2,		SP_GAME_INFO
 				CALL	DEB_rdsw
- 				AND		s0,		MSK_SW6				;Check which difficulty level the user has chosen
+ 				AND	s0,		MSK_SW6			;Check which difficulty level the user has chosen
  				COMPARE	s0,		MSK_SW6
  				CALL	Z,		level1
 				OUTPUT	s2,		PA_GAME_INFO		
-                LOAD    s2,     FC    				;clear game_info
-                FETCH   s3,     SP_GAME_INFO
-                AND     s3,     s2              	;mask sprite bits
-                STORE   s3,     SP_GAME_INFO
+				LOAD    s2,     FC    				;clear game_info
+				FETCH   s3,     SP_GAME_INFO
+				AND     s3,     s2              		;mask sprite bits
+				STORE   s3,     SP_GAME_INFO
 				FETCH	s6,		SP_SEM
-				SUB		s6,		01					;decrement semaphore
+				SUB		s6,		01		;decrement semaphore
 				STORE	s6,		SP_SEM				
-				JUMP	main_L0						;end - main while loop	
+				JUMP	main_L0					;end - main while loop	
 				
 													
 								

@@ -1,14 +1,14 @@
-\contentsline {section}{\numberline {1}Introduction}{2}{section.1}
-\contentsline {subsection}{\numberline {1.1}Gameplay}{2}{subsection.1.1}
-\contentsline {subsection}{\numberline {1.2}Controls}{2}{subsection.1.2}
-\contentsline {subsection}{\numberline {1.3}Features}{2}{subsection.1.3}
-\contentsline {section}{\numberline {2}Implementation}{3}{section.2}
-\contentsline {subsection}{\numberline {2.1}Software}{3}{subsection.2.1}
-\contentsline {section}{\numberline {3}Video Controller Implementation}{5}{section.3}
-\contentsline {subsection}{\numberline {3.1}Walls}{5}{subsection.3.1}
-\contentsline {subsection}{\numberline {3.2}Collision Detection}{6}{subsection.3.2}
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}
+\contentsline {subsection}{\numberline {1.1}Gameplay}{3}{subsection.1.1}
+\contentsline {subsection}{\numberline {1.2}Controls}{3}{subsection.1.2}
+\contentsline {subsection}{\numberline {1.3}Features}{4}{subsection.1.3}
+\contentsline {section}{\numberline {2}Implementation}{4}{section.2}
+\contentsline {subsection}{\numberline {2.1}Software}{4}{subsection.2.1}
+\contentsline {section}{\numberline {3}Video Controller Implementation}{7}{section.3}
+\contentsline {subsection}{\numberline {3.1}Walls}{7}{subsection.3.1}
+\contentsline {subsection}{\numberline {3.2}Collision Detection}{7}{subsection.3.2}
 \contentsline {subsection}{\numberline {3.3}Icons}{7}{subsection.3.3}
 \contentsline {subsection}{\numberline {3.4}Colorizer}{7}{subsection.3.4}
-\contentsline {section}{\numberline {4}Conclusion}{7}{section.4}
-\contentsline {subsection}{\numberline {4.1}Challenges}{7}{subsection.4.1}
+\contentsline {section}{\numberline {4}Conclusion}{8}{section.4}
+\contentsline {subsection}{\numberline {4.1}Challenges}{8}{subsection.4.1}
 \contentsline {subsection}{\numberline {4.2}Future Work}{8}{subsection.4.2}

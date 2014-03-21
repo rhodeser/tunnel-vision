@@ -108,9 +108,7 @@ wire	[1:0] 			icon,wall;
 wire	[9:0]			vid_row_shifted;
 wire	[9:0]			vid_col_shifted;
 
-/******************************************************************/
-/* THIS SECTION SHOULDN'T HAVE TO CHANGE FOR LAB 1                */
-/******************************************************************/			
+		
 	// global assigns
 	assign	sysclk = clk100;
 	assign 	sysreset = db_btns[0];
