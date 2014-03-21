@@ -6,9 +6,10 @@
 \contentsline {subsection}{\numberline {2.1}Software}{4}{subsection.2.1}
 \contentsline {section}{\numberline {3}Video Controller Implementation}{7}{section.3}
 \contentsline {subsection}{\numberline {3.1}Walls}{7}{subsection.3.1}
-\contentsline {subsection}{\numberline {3.2}Collision Detection}{7}{subsection.3.2}
-\contentsline {subsection}{\numberline {3.3}Icons}{7}{subsection.3.3}
-\contentsline {subsection}{\numberline {3.4}Colorizer}{7}{subsection.3.4}
-\contentsline {section}{\numberline {4}Conclusion}{8}{section.4}
-\contentsline {subsection}{\numberline {4.1}Challenges}{8}{subsection.4.1}
-\contentsline {subsection}{\numberline {4.2}Future Work}{8}{subsection.4.2}
+\contentsline {subsection}{\numberline {3.2}Icons}{7}{subsection.3.2}
+\contentsline {subsection}{\numberline {3.3}Collision Detection}{8}{subsection.3.3}
+\contentsline {subsection}{\numberline {3.4}Obstacles}{8}{subsection.3.4}
+\contentsline {subsection}{\numberline {3.5}Colorizer}{8}{subsection.3.5}
+\contentsline {section}{\numberline {4}Conclusion}{9}{section.4}
+\contentsline {subsection}{\numberline {4.1}Challenges}{9}{subsection.4.1}
+\contentsline {subsection}{\numberline {4.2}Future Work}{9}{subsection.4.2}

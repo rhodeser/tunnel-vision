@@ -144,31 +144,58 @@ In order to ensure the correct flow of game play, the push button inputs were ch
 
 	
 \section{Video Controller Implementation}
-	The video controller module managed the icon switching and generation, the width and location of the walls, and the collision detection.
+	The video controller module, implemented in hardware, managed the icon switching and generation, the width and location of the walls, the obstacle creation, and the collision detection.
 	
-%	\begin{figure}[t!]\centering
-%	\includegraphics[height=0.5\textwidth]{video_controller.png}
-%	\caption{Video Controller Overview}
-%		\label{controller}
-%	\end{figure}
+	%TODO finish this section up
+	
+
 
 \subsection{Walls}
 The tunnel walls consist two black lines separated by a predefined width.  The walls directions are generated randomly using a linear feedback shift register. The video controller takes 2 bits from the LFSR and moves the walls left, right, or keeps them at the same position.  Since there are 4 possible numbers, the last possibility defaulted to keeping the walls at the same position.  \\
 
+	\begin{figure}[h]\centering
+	\includegraphics[height=0.3\textwidth]{Images/wall.png}
+	\caption{Wall Location Transitions}
+		\label{wall}
+	\end{figure}
+
 \hspace{12pt} The tunnel width, which is a function of time, decreases continuously as the user is playing the game. 
-It is controlled by a flag that is set whenever the counter reaches a specific number. The wall speed is also monitored by a counter, which decides when to alter the current pixel and row.\\
+It is controlled by a flag that is set whenever the counter reaches a specific number. The wall speed is also monitored by a counter, which decides when to alter the wall location.  Figure \ref{wall} shows the transitions the wall would make based off one random value. \\
 
-\hspace{12pt} Edge detection was performed in order to ensure the walls did not move out of bounds.  \\
-
-\subsection{Collision Detection}	
-		%TODO Is it only the x coordinate from the icon?  	See module, include code
-		We are detecting collisions by comparing the x and y coordinates of the wall and the x coordinate of the icon (right?) This is because the icon never moves up or down. If they are equal then that is a collision  and a register called collision detect is made high. At every clock edge collision detect is checked, when one it  concludes the game. At this time the icon is not displayed and a ``Game Over'' screen is displayed.  
-	
-	%include code snippet
+\hspace{12pt} Edge detection was performed in order to ensure the walls did not move out of bounds.  The coordinates of each side of the wall are checked, and if they are on the edge, the wall simply changes its next location to be closer to the middle.  \\
 	
 		\subsection{Icons}
-		%TODO Actual explanation of Icons, include pictures of them
-		There are currently four icons which can be selected by different switches on the board. The icons were created by directly coding the images into bits instead of reading the image from a \texttt{coe} file. 
+		%TODO Hammer picture
+		There are currently four icons which can be selected by different switches on the board. The icons, just like the obstacles, background images, and walls, were created by directly coding the images into bits instead of reading the image from a \texttt{coe} file. When the \texttt{pixel\_row} and \texttt{pixel\_column} signals reach the location of the icon, they are displayed on the screen. At all other times the icon acts transparent. The icons are ``animated'' by interchanging different colored icons of the same shape.  \\
+\hspace{12pt} The vehicle's location is updated based on the \texttt{game\_control} register coming from the Picoblaze soft core. Whenever the display timing generator has finished displaying a full screen and its coordinates are back at the origin, a counter is checked to decide whether the vehicle's location should change, regardless of the pushbutton inputs.  Only when this counter is zero will the location be updated.  This effectively allows us to control the ``sensitivity'' of the vehicle by modifying the counter value. 
+
+\begin{lstlisting}[caption=Example Icon creation, label=hammer]		
+			if(i == 1 && (j==0 || j==1 || j==2))
+				bitmap_bot_4[i][j] = 2'b11;			
+			else if(i == 2 )
+				bitmap_bot_4[i][j] = 2'b11;	
+			else if(i ==3)
+				bitmap_bot_4[i][j] = 2'b11;			
+			else if(i == 4 && (j==0 || j==1 || j==2))
+				bitmap_bot_4[i][j] = 2'b11;						
+			else
+				bitmap_bot_4[i][j] = 2'b00;	
+ \end{lstlisting}
+
+
+
+\subsection{Collision Detection}	
+		Collisions are detected by comparing the coordinates of the wall or obstacle with the coordinates of the icon.  If they are equivalent, the collision detect is asserted, which is checked every clock edge. Once this occurs, the game stops and a ``Game Over'' screen is displayed.  
+
+\begin{lstlisting}[caption=Collision Detection Logic, label=collision]		
+	if ((Pixel_row >= locY) && (Pixel_row <= (locY + 3'h6)) && (Pixel_column >= locX) && (Pixel_column <= (locX + 4'h6)) ) begin
+		collison_detect <= 1'd1;
+	end	
+ \end{lstlisting}
+ 
+ 
+\subsection{Obstacles}
+	Obstacles randomly appear on either side in the tunnel, and also employ collision detection.  They use the icon's size (6x6) and extend the height to transform into a rectangular shape. The direction of the wall is also based on the LFSR, and is constrained to either be on the left or right side of the tunnel.
 		
 \subsection{Colorizer}
 
@@ -179,14 +206,14 @@ The \texttt{colorizer} module displays the icon and tunnel walls pixel by pixel.
 	\vspace{15pt}
 	
 	\begin{tabular}{||c|c|c|c||}\hline	
-		Wall	&	Icon	&	Color	&	Purpose		\\\hline
+		\textbf{Wall}	&	\textbf{Icon}	&	\textbf{Color}	&	\textbf{Purpose}		\\\hline
 		00		&	00		&	White 	&	Background 	\\\hline
 		01		&	00		&	Black 	&	Walls 		\\\hline
 		10		&	00		&	Red 	&	Obstacles 	\\\hline
 		11		&	00		&	Gray 	&	Background	\\\hline
 		X		&	01		&	Maroon	&	Unused		\\\hline
-		X		&	10		&	Cyan	&	Start/End Screen	\\\hline
-		X		&	11		&	Magenta	&	Start/End Screen	\\\hline	
+		X		&	10		&	Cyan	&	Icon \& Splash Screens	\\\hline
+		X		&	11		&	Magenta	&	Icon \& Splash Screens	\\\hline	
 	\end{tabular}
 		\caption {Color Schemes} \label{colorizer}
 	\end{center}
@@ -251,6 +278,8 @@ Creating \textbf{Tunnel Vision} was an enjoyable experience (for the most part).
 	\subsection{Challenges}
 		
 		\begin{itemize}				
+		
+		\item \textbf{Debugging}. This was difficult because simulating the video output takes very long time and it is not practical. We were forced to view the output on the screen to resolved issues.  Debugging assembly language was also quite tedious, as there aren't any helpful warning or error messages.  
 	
 		\item \textbf{ROM for map that dynamically changes}. We attempted to add memory in order to change the collision detection and dynamically switch wall coordinates, but this was not able to be implemented.
 		
@@ -261,8 +290,6 @@ Creating \textbf{Tunnel Vision} was an enjoyable experience (for the most part).
 	%table "Division of Tasks" 
 	\begin {table}[H]
 	\begin {center} 
-
-	\vspace{15pt}
 	
 	\begin{tabular}{||l|c|c|c|c||}\hline	
 										& Erik Rhodes 	& Bhavana Dhulipala & Rohan Deshpande 	& Nikhil Patil\\\hline
@@ -271,15 +298,13 @@ Creating \textbf{Tunnel Vision} was an enjoyable experience (for the most part).
 	Icons and Walls						&				&	\checkmark		&					&			\\\hline	
 	Graphics							&				&	\checkmark		&	\checkmark			&	\checkmark		\\\hline
 	Random Number Generation			&				&					&	\checkmark		&			\\\hline
-	Documentation and Source Control	& 	\checkmark	&					&					& \\\hline
-	
+	Documentation, Source Control		& 	\checkmark	&					&					& \\\hline
 	
 	\end{tabular}
 		\caption {Division of Tasks} \label{Division of Tasks}
 	\end{center}
 	\end{table}
 	\subsection{Future Work}
-
 	
 	\begin{itemize}
 	\item \textbf{ROM Map:} The current implementation of wall generation does not use any memory.  If this functionality was converted to be stored in a ROM, different wall widths could be displayed in one frame, and collision detection could be done based off of the coordinates themselves. 
@@ -288,8 +313,7 @@ Creating \textbf{Tunnel Vision} was an enjoyable experience (for the most part).
 	\item \textbf{Multiplayer Mode:} Two different tunnels could be generated, allowing multiple players to compete against each other. 
 	
 	\end{itemize}
-	
-
+\vspace{-20pt}
 		\begin{figure}[h]
 		  \begin{flushright}
 		  \includegraphics[width=.1\textwidth]{Images/qrcode.png}
