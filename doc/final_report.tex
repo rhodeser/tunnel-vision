@@ -164,8 +164,14 @@ It is controlled by a flag that is set whenever the counter reaches a specific n
 
 \hspace{12pt} Edge detection was performed in order to ensure the walls did not move out of bounds.  The coordinates of each side of the wall are checked, and if they are on the edge, the wall simply changes its next location to be closer to the middle.  \\
 	
-		\subsection{Icons}
-		%TODO Hammer picture
+\subsection{Icons}
+
+		\begin{figure}[h]\centering
+		  \includegraphics[width=.7\textwidth]{Images/icons.png}
+		  \caption{Allocation of bits in game\_info register}
+		  \label{game_info_bits}
+		\end{figure}	
+
 		There are currently four icons which can be selected by different switches on the board. The icons, just like the obstacles, background images, and walls, were created by directly coding the images into bits instead of reading the image from a \texttt{coe} file. When the \texttt{pixel\_row} and \texttt{pixel\_column} signals reach the location of the icon, they are displayed on the screen. At all other times the icon acts transparent. The icons are ``animated'' by interchanging different colored icons of the same shape.  \\
 \hspace{12pt} The vehicle's location is updated based on the \texttt{game\_control} register coming from the Picoblaze soft core. Whenever the display timing generator has finished displaying a full screen and its coordinates are back at the origin, a counter is checked to decide whether the vehicle's location should change, regardless of the pushbutton inputs.  Only when this counter is zero will the location be updated.  This effectively allows us to control the ``sensitivity'' of the vehicle by modifying the counter value. 
 
@@ -219,19 +225,9 @@ The \texttt{colorizer} module displays the icon and tunnel walls pixel by pixel.
 	\end{center}
 	\end{table} 		
 
-%		\begin{figure}
-%		\centering
-%		\begin{minipage}{.5\textwidth}
-%			\centering
-%		  	\includegraphics[width=.6\textwidth]{icon.png}
-%		  		\caption{Icon Module}			
-%			\label{icon}
-%		\end{minipage}%
-%		\begin{minipage}{.5\textwidth}
-%		  	\centering
-%			\includegraphics[width=.6\textwidth]{colorizer.png}
-%			\caption{Colorizer Module}
-%		  		\label{colorizer}
+
+
+
 %		\end{minipage}
 %		\end{figure}
 %
