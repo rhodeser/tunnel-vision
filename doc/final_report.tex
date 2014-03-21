@@ -62,10 +62,10 @@
 \textbf{Tunnel Vision} is a racing game that can be played on the \textbf{Xilinx Nexys3 FPGA} board and be displayed on a VGA monitor.
 
 \subsection{Gameplay}
-The player tries to avoid hitting the walls as it travels down the tunnel by moving the vehicle left and right. The space in between the walls steadily decreases until the player hits a wall or obstacle. The score is based on the amount of time the vehicle remains ``alive'', and is displayed on the 7-segment display.
+The player tries to avoid hitting the vehicle against the walls or obstacles as it travels down the tunnel. The space in between the walls steadily decreases until the player hits a wall or obstacle. The score is based on the amount of time the vehicle remains ``alive'', and is displayed on the 7-segment display.
 
 \subsection{Controls}
-The player can move his vehicle by using the left and right pushbuttons on the Nexys3. When the game is over, hitting the middle button will reset the course. The top button starts the game and the bottom pushbutton pauses it. Different icons and speeds can be selected by toggling the switches on the board.
+The player can move the vehicle by using the left and right push buttons on the Nexys3. When the game is over, hitting the middle button will reset the course. The top button starts the game and the bottom push button pauses it. Different icons and speeds can be selected by toggling the switches on the board.
 
 		\begin{figure}[h]\centering
 		\includegraphics[height=0.8\textwidth, width=0.8\textheight]{Images/controls_mockup.png}
@@ -85,7 +85,7 @@ The player can move his vehicle by using the left and right pushbuttons on the N
 		\label{block_diagram}
 	\end{figure}	
 		
-The information controlled in the \textbf{PicoBlaze} core is sent to the \texttt{Video\_controller} module via the \texttt{game\_interface} module.  This information is constructed in an 8-bit register called \texttt{game\_info}.  The allocation of bits is seen in Figure \ref{game_info_bits}.  Collisions, obstacles, and icon changes were controlled in hardware.  The video controller received the inputs of game\_info register and the \texttt{LFSR} module, shifted the wall appropriately, and used the collision logic to stop the game and display the \textbf{Game Over} screen.
+The information controlled in the \textbf{PicoBlaze} core is sent to the \texttt{Video\_controller} module via the \texttt{game\_interface} module.  This information is constructed in an 8-bit register called \texttt{game\_info}.  The allocation of bits is seen in Figure \ref{game_info_bits}.  Collisions, obstacles, and icon changes were controlled in hardware.  The video controller receives the inputs of game\_info register and the \texttt{LFSR} module, shifted the wall appropriately, and used the collision logic to stop the game and display the \textbf{Game Over} screen.
 
 \subsection{Software}
 
@@ -103,20 +103,20 @@ The information controlled in the \textbf{PicoBlaze} core is sent to the \texttt
 		\end{figure}	
 
 
-In order to ensure the correct flow of game play, the push button inputs were checked in the order seen in Figure \ref{game_logic}.  Each button check performs approximately the same function.  The pushbutton input is checked, all other bits not pertaining to the specific button are masked off, and the button value is checked.  If it has not been pressed, the next button check is called.  If it has been pressed, the state is updated accordingly and the LEDs output the desired pattern. 
+In order to ensure the correct flow of game play, the push button inputs were checked in the order seen in Figure \ref{game_logic}.  Each button check performs approximately the same function.  The push button input is checked, all other bits not pertaining to the specific button are masked off, and the button value is checked.  If it has not been pressed, the next button check is called.  If it has been pressed, the state is updated accordingly and the LEDs output the desired pattern. 
 \vspace{12pt}
 \begin{lstlisting}[caption=Function checking if the top button has been pushed, label=chk_up_btn]		
-		FETCH	  s2,		SP_BTN				;load saved debounced button
-		AND		s2,		MSK_BTN_UP				;mask with up button
-		COMPARE s2,		MSK_BTN_UP
-		JUMP 	NZ, 	chk_no_btn				;go to next phase if no up button
-		LOAD 	s3,		PAUSED_STATE			;else pause and send out that register
-		STORE	s3,		STATE
-		FETCH	s3,		SP_GAME_INFO
-		LOAD 	s4,	    GAME_PAUSED        		;update game_info paused	
-		AND		s3,		s4						
-		STORE	s3,		SP_GAME_INFO
-		LOAD	s5,		FF						;output LED pattern
+		FETCH		s2,		SP_BTN						;load saved debounced button
+		AND			s2,		MSK_BTN_UP				;mask with up button
+		COMPARE	s2,		MSK_BTN_UP
+		JUMP 		NZ, 	chk_no_btn				;go to next phase if no up button
+		LOAD 		s3,		PAUSED_STATE			;else pause and send out that register
+		STORE		s3,		STATE
+		FETCH		s3,		SP_GAME_INFO
+		LOAD 		s4,		GAME_PAUSED 			;update game_info paused	
+		AND			s3,		s4						
+		STORE		s3,		SP_GAME_INFO
+		LOAD		s5,		FF								;output LED pattern
 		OUTPUT	s5,		PA_LEDS
 		RETURN	
  \end{lstlisting}
@@ -126,8 +126,8 @@ In order to ensure the correct flow of game play, the push button inputs were ch
 \vspace{12pt}
 %include active function
 
-\begin{lstlisting}[caption=Update the state game info, label=active]		
-		CALL	update_score				
+\begin{lstlisting}[caption=Update the state and game info, label=active]		
+		CALL				update_score				
 		LOAD 	s3,		ACTIVE_STATE
 		STORE	s3,		STATE
 		FETCH	s3,		SP_GAME_INFO
@@ -173,7 +173,7 @@ It is controlled by a flag that is set whenever the counter reaches a specific n
 		\end{figure}	
 
 		There are currently four icons which can be selected by different switches on the board. The icons, just like the obstacles, background images, and walls, were created by directly coding the images into bits (Listing \ref{hammer}) instead of reading the image from a \texttt{coe} file. When the \texttt{pixel\_row} and \texttt{pixel\_column} signals reach the location of the icon, they are displayed on the screen. At all other times the icon acts transparent. The icons are ``animated'' by interchanging different colored icons of the same shape. The hammer in Figure \ref{icons} is an example of this.  \\
-\hspace{12pt} The vehicle's location is updated based on the \texttt{game\_control} register coming from the Picoblaze soft core. Whenever the display timing generator has finished displaying a full screen and its coordinates are back at the origin, a counter is checked to decide whether the vehicle's location should change, regardless of the pushbutton inputs.  Only when this counter is zero will the location be updated.  This effectively allows us to control the ``sensitivity'' of the vehicle by modifying the counter value. 
+\hspace{12pt} The vehicle's location is updated based on the \texttt{game\_control} register coming from the Picoblaze soft core. Whenever the display timing generator has finished displaying a full screen and its coordinates are back at the origin, a counter is checked to decide whether the vehicle's location should change, regardless of the push button inputs.  Only when this counter is zero will the location be updated.  This effectively allows us to control the ``sensitivity'' of the vehicle by modifying the counter value. 
 
 \begin{lstlisting}[caption=Example Icon creation (hammer), label=hammer]		
 			if(i == 1 && (j==0 || j==1 || j==2))
@@ -191,7 +191,7 @@ It is controlled by a flag that is set whenever the counter reaches a specific n
 
 
 \subsection{Collision Detection}	
-		Collisions are detected by comparing the coordinates of the wall or obstacle with the coordinates of the icon.  If they are equivalent, the collision detect is asserted, which is checked every clock edge. Once this occurs, the game stops and a ``Game Over'' screen is displayed (Figure \ref{game_over}.  
+		Collisions are detected by comparing the coordinates of the wall or obstacle with the coordinates of the icon.  If they are equivalent, the collision detect is asserted, which is checked every clock edge. Once this occurs, the game stops and a ``Game Over'' screen is displayed.  
 
 \begin{lstlisting}[caption=Collision Detection Logic, label=collision]		
 	if ((Pixel_row >= locY) && (Pixel_row <= (locY + 3'h6)) && (Pixel_column >= locX) && (Pixel_column <= (locX + 4'h6)) ) begin
@@ -201,7 +201,7 @@ It is controlled by a flag that is set whenever the counter reaches a specific n
  
  
 \subsection{Obstacles}
-	Obstacles randomly appear on either side in the tunnel, and also employ collision detection.  They use the icon's size (6x6) and extend the height to transform into a rectangular shape. The direction of the wall is also based on the LFSR, and is constrained to either be on the left or right side of the tunnel.
+	Obstacles randomly appear on either side in the tunnel and also employ collision detection.  They take the icon's size (6x6) and extend the height to transform into a rectangular shape. The direction of the wall is also based on the LFSR, and is constrained to either be on the left or right side of the tunnel.
 		
 \subsection{Colorizer}
 
@@ -308,18 +308,18 @@ Creating \textbf{Tunnel Vision} was an enjoyable experience (for the most part).
 	
 	\end{itemize}
 	
+
+		\begin{figure}[h]\centering
+		  \includegraphics[width=.8\textwidth]{Images/gameover_screen.png}
+		  \label{gameover_screen}
+		\end{figure}		
+	
 %\vspace{-20pt}
 %		\begin{figure}[h]
-%		  \includegraphics[width=.1\textwidth]{Images/game_over.png}
-%		  \label{game_over}
+%		  \begin{flushright}
+%		  \includegraphics[width=.1\textwidth]{Images/qrcode.png}
+%		  \label{qrcode}
+%		  \end{flushright}
 %		\end{figure}		
-	
-\vspace{-20pt}
-		\begin{figure}[h]
-		  \begin{flushright}
-		  \includegraphics[width=.1\textwidth]{Images/qrcode.png}
-		  \label{qrcode}
-		  \end{flushright}
-		\end{figure}		
 	
 \end{document}
