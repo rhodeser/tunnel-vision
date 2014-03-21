@@ -91,7 +91,7 @@ The information controlled in the \textbf{PicoBlaze} core is sent to the \texttt
 
 					
 		\begin{figure}[h]\centering
-		  \includegraphics[width=.7\textwidth]{Images/game_info_bits.png}
+		  \includegraphics[width=.6\textwidth]{Images/game_info_bits.png}
 		  \caption{Allocation of bits in game\_info register}
 		  \label{game_info_bits}
 		\end{figure}	
@@ -151,7 +151,7 @@ In order to ensure the correct flow of game play, the push button inputs were ch
 
 
 \subsection{Walls}
-The tunnel walls consist two black lines separated by a predefined width.  The walls directions are generated randomly using a linear feedback shift register. The video controller takes 2 bits from the LFSR and moves the walls left, right, or keeps them at the same position.  Since there are 4 possible numbers, the last possibility defaulted to keeping the walls at the same position.  \\
+The tunnel walls consist two red lines separated by a predefined width.  The walls directions are generated randomly using a linear feedback shift register. The video controller takes 2 bits from the LFSR and moves the walls left, right, or keeps them at the same position.  Since there are 4 possible numbers, the last possibility defaulted to keeping the walls at the same position.  \\
 
 	\begin{figure}[h]\centering
 	\includegraphics[height=0.3\textwidth]{Images/wall.png}
@@ -214,12 +214,12 @@ The \texttt{colorizer} module displays the icon and tunnel walls pixel by pixel.
 	\begin{tabular}{||c|c|c|c||}\hline	
 		\textbf{Wall}	&	\textbf{Icon}	&	\textbf{Color}	&	\textbf{Purpose}		\\\hline
 		00		&	00		&	White 	&	Background 	\\\hline
-		01		&	00		&	Black 	&	Walls 		\\\hline
-		10		&	00		&	Red 	&	Obstacles 	\\\hline
+		01		&	00		&	Green 	&	Background (Trees) 		\\\hline
+		10		&	00		&	Red 	&	Obstacles \& Walls 	\\\hline
 		11		&	00		&	Gray 	&	Background	\\\hline
-		X		&	01		&	Maroon	&	Unused		\\\hline
-		X		&	10		&	Cyan	&	Icon \& Splash Screens	\\\hline
-		X		&	11		&	Magenta	&	Icon \& Splash Screens	\\\hline	
+		X		&	01		&	Maroon	&	Icons		\\\hline
+		X		&	10		&	Cyan	&	Icons \& Splash Screens	\\\hline
+		X		&	11		&	Magenta	&	Icons \& Splash Screens	\\\hline	
 	\end{tabular}
 		\caption {Color Schemes} \label{colorizer}
 	\end{center}
@@ -267,15 +267,14 @@ The \texttt{colorizer} module displays the icon and tunnel walls pixel by pixel.
 
 
 \section{Conclusion}
-Creating \textbf{Tunnel Vision} was an enjoyable experience (for the most part).  While we did face some roadblocks, we were pleased with the overall result.  There are many different paths we can take in the future to add new features to this game.
+
 
 	\subsection{Challenges}
 		
 		\begin{itemize}				
 		
-		\item \textbf{Debugging}. This was difficult because simulating the video output takes very long time and it is not practical. We were forced to view the output on the screen to resolved issues.  Debugging assembly language was also quite tedious, as there aren't any helpful warning or error messages.  
-	
-		\item \textbf{ROM for map that dynamically changes}. We attempted to add memory in order to change the collision detection and dynamically switch wall coordinates, but this was not able to be implemented.
+		\item \textbf{Debugging}. Finding errors in our code proved to be difficult due to the length of time synthesis takes. We were forced to view the output on the screen to resolved issues, which was not very practical.  Debugging assembly language was also quite tedious, as there aren't any helpful warning or error messages.
+%		\item \textbf{ROM for map that dynamically changes}. We attempted to add memory in order to change the collision detection and dynamically switch wall coordinates, but this was not able to be implemented.
 		
 		\item \textbf{Integration between hard-coded images and script generated images}.  We had trouble getting the different icons and splash screens created with Perl script to work with our current icon implementation.  Ultimately, these graphics are only used in the report and final presentation.
 				
@@ -307,7 +306,8 @@ Creating \textbf{Tunnel Vision} was an enjoyable experience (for the most part).
 	\item \textbf{Multiplayer Mode:} Two different tunnels could be generated, allowing multiple players to compete against each other. 
 	
 	\end{itemize}
-	
+
+Creating \textbf{Tunnel Vision} was an enjoyable experience (for the most part).  While we did face some roadblocks, we were pleased with the overall result.  There are many different paths we can take in the future to add new features to this game.	
 
 		\begin{figure}[h]\centering
 		  \includegraphics[width=.8\textwidth]{Images/gameover_screen.png}
