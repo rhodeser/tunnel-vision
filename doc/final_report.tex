@@ -168,14 +168,14 @@ It is controlled by a flag that is set whenever the counter reaches a specific n
 
 		\begin{figure}[h]\centering
 		  \includegraphics[width=.7\textwidth]{Images/icons.png}
-		  \caption{Allocation of bits in game\_info register}
-		  \label{game_info_bits}
+		  \caption{Icons the user can select}
+		  \label{icons}
 		\end{figure}	
 
-		There are currently four icons which can be selected by different switches on the board. The icons, just like the obstacles, background images, and walls, were created by directly coding the images into bits instead of reading the image from a \texttt{coe} file. When the \texttt{pixel\_row} and \texttt{pixel\_column} signals reach the location of the icon, they are displayed on the screen. At all other times the icon acts transparent. The icons are ``animated'' by interchanging different colored icons of the same shape.  \\
+		There are currently four icons which can be selected by different switches on the board. The icons, just like the obstacles, background images, and walls, were created by directly coding the images into bits (Listing \ref{hammer}) instead of reading the image from a \texttt{coe} file. When the \texttt{pixel\_row} and \texttt{pixel\_column} signals reach the location of the icon, they are displayed on the screen. At all other times the icon acts transparent. The icons are ``animated'' by interchanging different colored icons of the same shape. The hammer in Figure \ref{icons} is an example of this.  \\
 \hspace{12pt} The vehicle's location is updated based on the \texttt{game\_control} register coming from the Picoblaze soft core. Whenever the display timing generator has finished displaying a full screen and its coordinates are back at the origin, a counter is checked to decide whether the vehicle's location should change, regardless of the pushbutton inputs.  Only when this counter is zero will the location be updated.  This effectively allows us to control the ``sensitivity'' of the vehicle by modifying the counter value. 
 
-\begin{lstlisting}[caption=Example Icon creation, label=hammer]		
+\begin{lstlisting}[caption=Example Icon creation (hammer), label=hammer]		
 			if(i == 1 && (j==0 || j==1 || j==2))
 				bitmap_bot_4[i][j] = 2'b11;			
 			else if(i == 2 )
@@ -191,7 +191,7 @@ It is controlled by a flag that is set whenever the counter reaches a specific n
 
 
 \subsection{Collision Detection}	
-		Collisions are detected by comparing the coordinates of the wall or obstacle with the coordinates of the icon.  If they are equivalent, the collision detect is asserted, which is checked every clock edge. Once this occurs, the game stops and a ``Game Over'' screen is displayed.  
+		Collisions are detected by comparing the coordinates of the wall or obstacle with the coordinates of the icon.  If they are equivalent, the collision detect is asserted, which is checked every clock edge. Once this occurs, the game stops and a ``Game Over'' screen is displayed (Figure \ref{game_over}.  
 
 \begin{lstlisting}[caption=Collision Detection Logic, label=collision]		
 	if ((Pixel_row >= locY) && (Pixel_row <= (locY + 3'h6)) && (Pixel_column >= locX) && (Pixel_column <= (locX + 4'h6)) ) begin
@@ -224,8 +224,6 @@ The \texttt{colorizer} module displays the icon and tunnel walls pixel by pixel.
 		\caption {Color Schemes} \label{colorizer}
 	\end{center}
 	\end{table} 		
-
-
 
 
 %		\end{minipage}
@@ -288,7 +286,7 @@ Creating \textbf{Tunnel Vision} was an enjoyable experience (for the most part).
 	\begin {center} 
 	
 	\begin{tabular}{||l|c|c|c|c||}\hline	
-										& Erik Rhodes 	& Bhavana Dhulipala & Rohan Deshpande 	& Nikhil Patil\\\hline
+										& Erik  	& Bhavana  & Rohan  	& Nikhil\\\hline
 	Game Logic				 			&	\checkmark 	&					&				 	&			\\\hline
 	Video Controller					&	\checkmark	&	\checkmark		&	\checkmark		&			\\\hline
 	Icons and Walls						&				&	\checkmark		&					&			\\\hline	
@@ -309,6 +307,13 @@ Creating \textbf{Tunnel Vision} was an enjoyable experience (for the most part).
 	\item \textbf{Multiplayer Mode:} Two different tunnels could be generated, allowing multiple players to compete against each other. 
 	
 	\end{itemize}
+	
+%\vspace{-20pt}
+%		\begin{figure}[h]
+%		  \includegraphics[width=.1\textwidth]{Images/game_over.png}
+%		  \label{game_over}
+%		\end{figure}		
+	
 \vspace{-20pt}
 		\begin{figure}[h]
 		  \begin{flushright}
