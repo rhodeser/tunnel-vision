@@ -9,7 +9,7 @@
 \contentsline {subsection}{\numberline {3.2}Icons}{7}{subsection.3.2}
 \contentsline {subsection}{\numberline {3.3}Collision Detection}{8}{subsection.3.3}
 \contentsline {subsection}{\numberline {3.4}Obstacles}{8}{subsection.3.4}
-\contentsline {subsection}{\numberline {3.5}Colorizer}{8}{subsection.3.5}
+\contentsline {subsection}{\numberline {3.5}Colorizer}{9}{subsection.3.5}
 \contentsline {section}{\numberline {4}Conclusion}{9}{section.4}
 \contentsline {subsection}{\numberline {4.1}Challenges}{9}{subsection.4.1}
-\contentsline {subsection}{\numberline {4.2}Future Work}{9}{subsection.4.2}
+\contentsline {subsection}{\numberline {4.2}Future Work}{10}{subsection.4.2}
