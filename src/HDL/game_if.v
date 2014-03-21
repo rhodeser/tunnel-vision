@@ -1,21 +1,14 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company			: 
-// Engineer			: 
-// 
-// Create Date		:    01:08:20 01/26/2014 
-// Design Name		: 
-// Module Name		:    nexys3_bot_if 
-// Project Name	: 
-// Target Devices	: 
-// Tool versions	: 
-// Description		: 
+// Author:			Tunnel Vision Project Team
+//  
+// Create Date:    03/07/2014 
+// Module Name:    game_interface 
+// Project Name: 	Tunnel Vision
 //
-// Dependencies	: 
-//
-// Revision: 
-// Revision 0.01 - File Created
-// Additional Comments: 
+// Description: 
+//	This is interface module between video_game_controller, kcpsm6, debounce and 7-segment modules.
+//	This modules has registers which can be written or read by kcpsm6
 //
 //////////////////////////////////////////////////////////////////////////////////
 module game_interface(
@@ -23,7 +16,6 @@ module game_interface(
 	input					clk,
 	input 					rst,
 	output reg	[7:0]		game_info,
-	//input					upd_sysregs,
 	
 	// SEVEN SEGMENT.V CONNECTIONS
 	
@@ -39,8 +31,8 @@ module game_interface(
 	input		[4:1]		db_btns,
 	input		[7:0]		db_sw,
 	input		[1:0]		randomized_value,
-	//input 					game_status,
 	input collison_detect,
+	
 	// LED OUT
 	
 	output reg [7:0]		led,
@@ -64,7 +56,6 @@ module game_interface(
 	 
 reg [25:0] count;
 reg flag;
-//reg collison_detect_f;
 
 always @(posedge clk)
 begin
@@ -138,31 +129,28 @@ always @ (posedge clk)
 		if(rst) begin
 			count <= 26'b0;
 			flag <= 1'b0;
-//			collison_detect_f <= 1'd0;
 		end
-		else begin
-//			collison_detect_f <= collison_detect;
-			if (game_info[4] == 1'b0) begin 			//check level, speed up interrupt (meaning score)
+		else begin			
+			if (game_info[4] == 1'b0) begin //check level, speed up interrupt (meaning score) 
 				flag <= 1'b0;
-				if(count <= 10000000) begin
-						count <= count +1;
-						
+				if(count <= 10000000) begin	//clk to make interrupt to picoblaze for every 10msec
+					count <= count +1;
+				end			
+				else begin
+					count <= 0;
+				end
+			end
+			else begin
+				flag <= 1'b1;
+				if(count <= 4000000) begin//clk to make interrupt to picoblaze for every 40msec
+					count <= count +1;
 				end
 				else begin
-						count <= 0;
+					count <= 0;
 				end
 			end
-		
-		else begin
-			flag <= 1'b1;
-			if(count <= 4000000) begin
-						count <= count +1;
-				end
-				else begin
-						count <= 0;
-				end
-			end
-			end
+		end
+				
 		if (rst) begin
 			interrupt <= 1'b0;
 		end
@@ -172,17 +160,16 @@ always @ (posedge clk)
 				interrupt <= 1'b0;
 			end
 			else begin
-//				if(count == 10000000 || (collison_detect^collison_detect_f))
 				if (flag == 1'b0) begin
-					if(count == 10000000 || collison_detect==1 )
+					if(count == 10000000 || collison_detect==1 )	//interrupt is produced either when collision is detected or for every 10msec
 					begin
 						interrupt <= 1'b1;
 					end
 				end
 				if (flag == 1'b1) begin
-					if(count == 4000000 || collison_detect==1 )
+					if(count == 4000000 || collison_detect==1 )		//interrupt is produced either when collision is detected or for every 40msec
 					begin
-					interrupt <= 1'b1;
+						interrupt <= 1'b1;
 					end
 				end
 			end
